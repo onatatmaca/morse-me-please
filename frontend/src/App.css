@@ -1,0 +1,334 @@
+/* src/App.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.status-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  padding-bottom: 70px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  max-width: calc(100% - 100px);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.username {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wpm-badge {
+  background: rgba(46, 204, 113, 0.9);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.partner {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+}
+
+.status-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.status {
+  font-size: 14px;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warning-badge {
+  background: #e74c3c;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: blink 2s ease-in-out infinite;
+}
+
+.connection-dot.connected {
+  background: #27ae60;
+  box-shadow: 0 0 8px #27ae60;
+}
+
+.connection-dot.disconnected {
+  background: #e74c3c;
+  box-shadow: 0 0 8px #e74c3c;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.volume-btn,
+.settings-btn {
+  position: absolute;
+  bottom: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 50;
+}
+
+.volume-btn {
+  right: 70px;
+}
+
+.settings-btn {
+  right: 20px;
+}
+
+.volume-btn:hover,
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.volume-control {
+  position: absolute;
+  bottom: 65px;
+  right: 70px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideUp 0.2s ease;
+  z-index: 100;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.volume-control input[type="range"] {
+  width: 100px;
+}
+
+.volume-control span {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 40px;
+}
+
+.main-app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 60px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-content h2 {
+  color: #667eea;
+  margin-bottom: 20px;
+  font-size: 32px;
+}
+
+.waiting-hint {
+  color: #999;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.timing-guide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 20px;
+  background: #f8f9fa;
+  margin: 0 20px;
+  flex-shrink: 0;
+}
+
+.timing-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.timing-icon {
+  font-size: 18px;
+}
+
+.timing-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.timing-desc {
+  font-size: 10px;
+  color: #999;
+}
+
+.timing-divider {
+  font-size: 18px;
+  color: #ddd;
+  font-weight: 300;
+}
+
+.keyboard-hint {
+  text-align: center;
+  padding: 6px;
+  background: #fff3cd;
+  color: #856404;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 20px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-container {
+    border-radius: 0;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: 8px;
+    max-width: 100%;
+  }
+  
+  .status-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .volume-btn {
+    right: 60px;
+  }
+  
+  .settings-btn {
+    right: 10px;
+  }
+  
+  .volume-control {
+    right: 60px;
+  }
+  
+  .timing-guide {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .timing-divider {
+    display: none;
+  }
+}

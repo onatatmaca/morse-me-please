@@ -1,0 +1,50 @@
+/* src/UsernameForm.css */
+.username-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.username-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.username-card h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #667eea;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+.username-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.username-card input {
+  width: 100%;
+}
+
+.username-card button {
+  background: #667eea;
+  color: white;
+  padding: 14px 28px;
+  font-size: 18px;
+}
+
+.username-card button:hover {
+  background: #5568d3;
+}

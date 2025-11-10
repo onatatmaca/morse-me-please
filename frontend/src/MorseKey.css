@@ -1,0 +1,92 @@
+/* src/MorseKey.css */
+.morse-key-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  flex-shrink: 0;
+}
+
+.morse-key {
+  width: 238px;  /* 15% smaller: was 280px */
+  height: 238px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #e74c3c, #c0392b);
+  border: 7px solid #a93226;  /* Proportionally smaller */
+  box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4),
+              inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.morse-key:not(.disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 35px rgba(231, 76, 60, 0.5),
+              inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.morse-key:not(.disabled):active,
+.morse-key.pressed {
+  transform: scale(0.95);
+  box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3),
+              inset 0 4px 12px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(145deg, #c0392b, #a93226);
+}
+
+.morse-key.pressed {
+  animation: glow 0.15s ease-in-out;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3),
+                inset 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(231, 76, 60, 0.9),
+                0 0 50px rgba(255, 255, 255, 0.5),
+                inset 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.morse-key.disabled {
+  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+  border-color: #7f8c8d;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: 0 5px 15px rgba(127, 140, 141, 0.3);
+}
+
+.morse-key-label {
+  font-size: 24px;  /* Proportionally smaller */
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+}
+
+.morse-key-hint {
+  font-size: 12px;  /* Proportionally smaller */
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.press-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+  border-radius: 0 0 0 50%;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+}

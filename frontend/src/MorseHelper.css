@@ -1,0 +1,171 @@
+/* src/MorseHelper.css */
+.morse-helper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+.helper-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+  transition: all 0.2s ease;
+}
+
+.helper-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(155, 89, 182, 0.5);
+}
+
+.helper-icon {
+  font-size: 18px;
+}
+
+.helper-panel {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 400px;
+  max-width: 90vw;
+  max-height: 500px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  z-index: 1000;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.helper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.helper-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.helper-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.timing-info {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.timing-info strong {
+  color: #9b59b6;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.timing-info p {
+  margin: 4px 0;
+  color: #666;
+}
+
+.morse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+}
+
+.morse-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.morse-item:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.morse-letter {
+  font-size: 20px;
+  font-weight: bold;
+  color: #9b59b6;
+  margin-bottom: 4px;
+}
+
+.morse-code {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #666;
+  letter-spacing: 2px;
+}
+
+/* Scrollbar styling */
+.helper-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.helper-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.helper-content::-webkit-scrollbar-thumb {
+  background: #9b59b6;
+  border-radius: 10px;
+}
