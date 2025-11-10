@@ -326,16 +326,6 @@ export default function App() {
   return (
     <div className="app-container">
       <div className="status-bar">
-        <a
-          href="https://buymeacoffee.com/atmacaonat"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="coffee-btn"
-          title="Support the site"
-        >
-          ☕
-        </a>
-
         <div className="user-info">
           <span className="username">
             You: {username}
