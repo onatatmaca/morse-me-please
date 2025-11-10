@@ -1,34 +1,71 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import './MorseKey.css';
 
-export default function MorseKey({ onSignal, disabled, volume = 0.3, dashThreshold = 300 }) {
+const MorseKey = forwardRef(({ onSignal, disabled, volume = 0.3, dashThreshold = 300 }, ref) => {
   const [isPressed, setIsPressed] = useState(false);
   const [pressProgress, setPressProgress] = useState(0);
+  const [ripples, setRipples] = useState([]);
   const pressStartTime = useRef(null);
   const audioContext = useRef(null);
   const progressInterval = useRef(null);
+  const rippleCounter = useRef(0);
 
   useEffect(() => {
     audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
-  const playBeep = (frequency, duration) => {
+  // Enhanced sound with more pleasant tones and envelopes
+  const playBeep = (isDash) => {
     if (!audioContext.current || volume === 0) return;
 
-    const oscillator = audioContext.current.createOscillator();
-    const gainNode = audioContext.current.createGain();
+    const ctx = audioContext.current;
+    const now = ctx.currentTime;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.current.destination);
+    // Create oscillator with warmer tone
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
 
-    oscillator.frequency.value = frequency;
-    oscillator.type = 'sine';
+    // Connect the audio graph
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
 
-    gainNode.gain.setValueAtTime(volume, audioContext.current.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.current.currentTime + duration);
+    // Use triangle wave for warmer, less harsh sound
+    oscillator.type = 'triangle';
 
-    oscillator.start(audioContext.current.currentTime);
-    oscillator.stop(audioContext.current.currentTime + duration);
+    // Different frequencies for dot vs dash
+    oscillator.frequency.value = isDash ? 380 : 620;
+
+    // Low-pass filter for smoother sound
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 1;
+
+    // ADSR envelope for more satisfying sound
+    const duration = isDash ? 0.25 : 0.12;
+    const attackTime = 0.01;
+    const decayTime = 0.03;
+    const sustainLevel = volume * 0.6;
+    const releaseTime = 0.08;
+
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(volume, now + attackTime);
+    gainNode.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+    gainNode.gain.setValueAtTime(sustainLevel, now + duration - releaseTime);
+    gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+  };
+
+  const addRipple = () => {
+    const id = rippleCounter.current++;
+    setRipples(prev => [...prev, { id, timestamp: Date.now() }]);
+
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== id));
+    }, 800);
   };
 
   const handlePressStart = () => {
@@ -36,6 +73,7 @@ export default function MorseKey({ onSignal, disabled, volume = 0.3, dashThresho
     setIsPressed(true);
     pressStartTime.current = Date.now();
     setPressProgress(0);
+    addRipple();
 
     progressInterval.current = setInterval(() => {
       const elapsed = Date.now() - pressStartTime.current;
@@ -51,7 +89,7 @@ export default function MorseKey({ onSignal, disabled, volume = 0.3, dashThresho
     const isDash = pressDuration > dashThreshold;
 
     onSignal(isDash ? 'dash' : 'dot');
-    playBeep(isDash ? 400 : 800, isDash ? 0.3 : 0.15);
+    playBeep(isDash);
 
     setIsPressed(false);
     setPressProgress(0);
@@ -61,6 +99,32 @@ export default function MorseKey({ onSignal, disabled, volume = 0.3, dashThresho
       clearInterval(progressInterval.current);
     }
   };
+
+  // Expose methods to parent component for keyboard triggers
+  useImperativeHandle(ref, () => ({
+    triggerPress: (signal) => {
+      if (disabled) return;
+
+      const isDash = signal === 'dash';
+
+      // Visual feedback
+      setIsPressed(true);
+      addRipple();
+
+      if (isDash) {
+        setPressProgress(100);
+      }
+
+      // Play sound
+      playBeep(isDash);
+
+      // Reset visual state
+      setTimeout(() => {
+        setIsPressed(false);
+        setPressProgress(0);
+      }, isDash ? 250 : 120);
+    }
+  }));
 
   return (
     <div className="morse-key-container">
@@ -73,15 +137,25 @@ export default function MorseKey({ onSignal, disabled, volume = 0.3, dashThresho
         onTouchEnd={handlePressEnd}
         disabled={disabled}
       >
+        {ripples.map(ripple => (
+          <div key={ripple.id} className="ripple" />
+        ))}
+
         {isPressed && pressProgress > 0 && (
           <div className="press-progress" style={{ width: `${pressProgress}%` }} />
         )}
-        
-        <span className="morse-key-label">Morse Key</span>
-        <span className="morse-key-hint">
-          {disabled ? '⏸️ Not your turn' : 'Tap = · | Hold = −'}
-        </span>
+
+        <div className="morse-key-content">
+          <span className="morse-key-label">Morse Key</span>
+          <span className="morse-key-hint">
+            {disabled ? '⏸️ Not your turn' : 'Tap = · | Hold = −'}
+          </span>
+        </div>
       </button>
     </div>
   );
-}
+});
+
+MorseKey.displayName = 'MorseKey';
+
+export default MorseKey;
