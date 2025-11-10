@@ -2,7 +2,7 @@
 .morse-helper {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   z-index: 999;
 }
 
@@ -34,7 +34,7 @@
 .helper-panel {
   position: fixed;
   bottom: 80px;
-  right: 20px;
+  left: 20px;
   width: 400px;
   max-width: 90vw;
   max-height: 500px;
