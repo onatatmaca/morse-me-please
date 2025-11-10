@@ -344,6 +344,7 @@ export default function App() {
   }
 
   return (
+    <>
     <div className="app-container">
       <div className="status-bar">
         <div className="user-info">
@@ -468,8 +469,9 @@ export default function App() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
-
-      <MorseHelper />
     </div>
+
+    <MorseHelper />
+  </>
   );
 }

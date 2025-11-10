@@ -11,9 +11,9 @@
   width: 238px;
   height: 238px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #e74c3c, #c0392b);
-  border: 7px solid #a93226;
-  box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4),
+  background: linear-gradient(145deg, #c0392b, #a93226);
+  border: 7px solid #8e2a1f;
+  box-shadow: 0 8px 20px rgba(192, 57, 43, 0.25),
               inset 0 -4px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -29,16 +29,16 @@
 
 .morse-key:not(.disabled):hover {
   transform: scale(1.05);
-  box-shadow: 0 15px 40px rgba(231, 76, 60, 0.6),
+  box-shadow: 0 10px 25px rgba(192, 57, 43, 0.3),
               inset 0 -4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .morse-key:not(.disabled):active,
 .morse-key.pressed {
   transform: scale(0.92);
-  box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5),
+  box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3),
               inset 0 8px 16px rgba(0, 0, 0, 0.6);
-  background: linear-gradient(145deg, #c0392b, #a93226);
+  background: linear-gradient(145deg, #a93226, #8e2a1f);
 }
 
 .morse-key.pressed {
@@ -47,16 +47,16 @@
 
 @keyframes intensePulse {
   0% {
-    box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5),
+    box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3),
                 inset 0 8px 16px rgba(0, 0, 0, 0.6);
   }
   40% {
-    box-shadow: 0 0 25px rgba(255, 100, 80, 0.6),
-                0 0 35px rgba(255, 150, 100, 0.4),
+    box-shadow: 0 0 18px rgba(192, 57, 43, 0.35),
+                0 0 22px rgba(200, 80, 60, 0.2),
                 inset 0 8px 16px rgba(0, 0, 0, 0.6);
   }
   100% {
-    box-shadow: 0 5px 20px rgba(231, 76, 60, 0.5),
+    box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3),
                 inset 0 8px 16px rgba(0, 0, 0, 0.6);
   }
 }

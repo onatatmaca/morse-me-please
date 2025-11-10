@@ -200,12 +200,6 @@
   border: 1px solid rgba(91, 154, 255, 0.3);
 }
 
-.own-message .message-translation {
-  background: rgba(57, 211, 83, 0.1) !important;
-  color: #39d353 !important;
-  border: 1px solid rgba(57, 211, 83, 0.3);
-}
-
 .live-message .message-content {
   opacity: 0.85;
 }
