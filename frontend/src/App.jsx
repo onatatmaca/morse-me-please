@@ -122,6 +122,20 @@ export default function App() {
       setIsMyTurn(true);
       setStatus('Your turn!');
       setInactivityCountdown(0);
+
+      // Finalize partner's last message when they pass turn
+      setMessages(prev => {
+        if (prev.length > 0) {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg.isLive && lastMsg.from !== username) {
+            return [
+              ...prev.slice(0, -1),
+              { ...lastMsg, isLive: false }
+            ];
+          }
+        }
+        return prev;
+      });
     });
 
     socket.on('turn-passed', () => {

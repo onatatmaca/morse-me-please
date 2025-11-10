@@ -1,9 +1,10 @@
 /* src/MessageTranscript.css */
 .transcript {
   margin: 10px 20px 20px 20px;
-  background: white;
+  background: #0f0f0f;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -12,8 +13,9 @@
 }
 
 .transcript-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #262626 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #333;
+  color: #39d353;
   padding: 12px 20px;
   display: flex;
   justify-content: space-between;
@@ -23,15 +25,16 @@
 
 .transcript-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  font-family: 'Monaco', monospace;
 }
 
 .translation-toggle {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  font-size: 18px;
+  background: #262626;
+  border: 2px solid #333;
+  color: #39d353;
+  font-size: 16px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -44,8 +47,10 @@
 }
 
 .translation-toggle:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #333;
+  border-color: #39d353;
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(57, 211, 83, 0.2);
 }
 
 .transcript-content {
@@ -56,6 +61,7 @@
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  background: #0f0f0f;
 }
 
 .empty-state {
@@ -106,11 +112,11 @@
 }
 
 .partner-message .message-sender {
-  color: #667eea;
+  color: #5b9aff;
 }
 
 .own-message .message-sender {
-  color: #764ba2;
+  color: #39d353;
 }
 
 .message-meta {
@@ -121,26 +127,29 @@
 }
 
 .message-wpm {
-  background: #27ae60;
-  color: white;
-  padding: 2px 6px;
+  background: #39d353;
+  color: #0a0a0a;
+  padding: 3px 7px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 9px;
+  font-family: 'Monaco', monospace;
 }
 
 .message-time {
-  color: #999;
+  color: #666;
   font-size: 10px;
+  font-family: 'Monaco', monospace;
 }
 
 .live-wpm-badge {
-  background: #f39c12;
-  color: white;
-  padding: 2px 6px;
+  background: #ff9500;
+  color: #0a0a0a;
+  padding: 3px 7px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 9px;
+  font-family: 'Monaco', monospace;
   animation: pulseBadge 1.5s ease-in-out infinite;
 }
 
@@ -164,14 +173,16 @@
 }
 
 .partner-message .message-content {
-  background: #f0f0f0;
-  color: #333;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #e5e5e5;
   border-bottom-left-radius: 4px;
 }
 
 .own-message .message-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, rgba(57, 211, 83, 0.15) 0%, rgba(57, 211, 83, 0.1) 100%);
+  border: 1px solid rgba(57, 211, 83, 0.3);
+  color: #39d353;
   border-bottom-right-radius: 4px;
 }
 
@@ -179,21 +190,20 @@
   margin-top: 8px;
   padding: 8px 12px;
   border-radius: 8px;
-  font-size: 14px;
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  font-style: italic;
+  font-size: 13px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-style: normal;
   letter-spacing: normal;
   line-height: 1.4;
-  /* CRITICAL FIX: Ensure visible colors */
-  background: #e8f5e9 !important;
-  color: #2e7d32 !important;
-  border: 1px solid #81c784;
+  background: rgba(91, 154, 255, 0.1) !important;
+  color: #5b9aff !important;
+  border: 1px solid rgba(91, 154, 255, 0.3);
 }
 
 .own-message .message-translation {
-  background: #fff3e0 !important;
-  color: #e65100 !important;
-  border: 1px solid #ffb74d;
+  background: rgba(57, 211, 83, 0.1) !important;
+  color: #39d353 !important;
+  border: 1px solid rgba(57, 211, 83, 0.3);
 }
 
 .live-message .message-content {
@@ -208,7 +218,8 @@
   display: flex;
   gap: 6px;
   padding: 10px 14px;
-  background: #f0f0f0;
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 12px;
   border-bottom-left-radius: 4px;
 }
@@ -217,7 +228,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #667eea;
+  background: #5b9aff;
   animation: typing 1.4s infinite;
 }
 
@@ -242,21 +253,21 @@
 
 /* Scrollbar styling */
 .transcript-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .transcript-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #0f0f0f;
   border-radius: 10px;
 }
 
 .transcript-content::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: #333;
   border-radius: 10px;
 }
 
 .transcript-content::-webkit-scrollbar-thumb:hover {
-  background: #5568d3;
+  background: #39d353;
 }
 
 /* Mobile optimizations */
