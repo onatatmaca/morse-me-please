@@ -15,7 +15,7 @@ html, body, #root {
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   animation: fadeIn 0.5s ease;
@@ -35,8 +35,8 @@ html, body, #root {
 .status-bar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 20px;
-  padding-bottom: 70px;
+  padding: 16px 20px;
+  padding-bottom: 60px;
   position: relative;
   flex-shrink: 0;
 }
@@ -59,6 +59,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 14px;
 }
 
 .wpm-badge {
@@ -73,6 +74,7 @@ html, body, #root {
   padding: 6px 12px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 20px;
+  font-size: 14px;
 }
 
 .status-info {
@@ -84,7 +86,7 @@ html, body, #root {
 }
 
 .status {
-  font-size: 14px;
+  font-size: 13px;
   opacity: 0.95;
   display: flex;
   align-items: center;
@@ -148,13 +150,13 @@ html, body, #root {
 .volume-btn,
 .settings-btn {
   position: absolute;
-  bottom: 15px;
+  bottom: 12px;
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -162,11 +164,11 @@ html, body, #root {
 }
 
 .volume-btn {
-  right: 70px;
+  right: 60px;
 }
 
 .settings-btn {
-  right: 20px;
+  right: 16px;
 }
 
 .volume-btn:hover,
@@ -177,8 +179,8 @@ html, body, #root {
 
 .volume-control {
   position: absolute;
-  bottom: 65px;
-  right: 70px;
+  bottom: 58px;
+  right: 60px;
   background: white;
   padding: 12px 16px;
   border-radius: 12px;
@@ -203,6 +205,48 @@ html, body, #root {
 
 .volume-control input[type="range"] {
   width: 100px;
+  height: 6px;
+  border-radius: 3px;
+  background: #e9ecef;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  margin: 0;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  margin-top: 0;
+}
+
+.volume-control input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+}
+
+.volume-control input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+}
+
+.volume-control input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
 }
 
 .volume-control span {
@@ -210,6 +254,7 @@ html, body, #root {
   font-weight: 600;
   font-size: 14px;
   min-width: 40px;
+  text-align: right;
 }
 
 .main-app-content {
@@ -222,7 +267,7 @@ html, body, #root {
 
 .main-content {
   flex: 1;
-  padding: 60px 40px;
+  padding: 40px 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -233,12 +278,12 @@ html, body, #root {
 .main-content h2 {
   color: #667eea;
   margin-bottom: 20px;
-  font-size: 32px;
+  font-size: 28px;
 }
 
 .waiting-hint {
   color: #999;
-  font-size: 16px;
+  font-size: 15px;
   margin-top: 10px;
 }
 
@@ -293,16 +338,26 @@ html, body, #root {
   flex-shrink: 0;
 }
 
-/* Responsive design */
+/* Mobile optimizations */
 @media (max-width: 768px) {
   .app-container {
     border-radius: 0;
   }
   
+  .status-bar {
+    padding: 12px 16px;
+    padding-bottom: 50px;
+  }
+  
   .user-info {
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     max-width: 100%;
+    font-size: 13px;
+  }
+  
+  .username, .partner {
+    font-size: 13px;
   }
   
   .status-info {
@@ -311,24 +366,52 @@ html, body, #root {
   }
   
   .volume-btn {
-    right: 60px;
+    right: 50px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
   
   .settings-btn {
     right: 10px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
   
   .volume-control {
-    right: 60px;
+    right: 50px;
+    bottom: 50px;
   }
   
   .timing-guide {
     flex-direction: column;
     gap: 8px;
     padding: 8px;
+    margin: 0 10px;
   }
   
   .timing-divider {
     display: none;
+  }
+  
+  .keyboard-hint {
+    margin: 0 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-bar {
+    padding: 10px 12px;
+    padding-bottom: 48px;
+  }
+  
+  .main-content h2 {
+    font-size: 24px;
+  }
+  
+  .waiting-hint {
+    font-size: 14px;
   }
 }
