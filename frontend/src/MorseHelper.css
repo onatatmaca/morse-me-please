@@ -11,20 +11,23 @@
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
-  color: white;
-  border: none;
+  background: #262626;
+  border: 2px solid #333;
+  color: #39d353;
   border-radius: 25px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  font-family: 'Monaco', monospace;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.2s ease;
 }
 
 .helper-toggle:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(155, 89, 182, 0.5);
+  background: #333;
+  border-color: #39d353;
+  box-shadow: 0 6px 16px rgba(57, 211, 83, 0.2);
 }
 
 .helper-icon {
@@ -38,13 +41,15 @@
   width: 400px;
   max-width: 90vw;
   max-height: 500px;
-  background: white;
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease;
   z-index: 1000;
+  backdrop-filter: blur(10px);
 }
 
 @keyframes slideUp {
@@ -63,22 +68,24 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
-  color: white;
+  background: linear-gradient(135deg, #262626 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #333;
+  color: #39d353;
   border-radius: 16px 16px 0 0;
 }
 
 .helper-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  font-family: 'Monaco', monospace;
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
+  background: #262626;
+  border: 2px solid #333;
+  color: #39d353;
+  font-size: 20px;
   cursor: pointer;
   padding: 0;
   width: 30px;
@@ -87,38 +94,43 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #333;
+  border-color: #39d353;
+  transform: scale(1.1);
 }
 
 .helper-content {
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+  background: #1a1a1a;
 }
 
 .timing-info {
-  background: #f8f9fa;
+  background: #0f0f0f;
+  border: 1px solid #333;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 16px;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.8;
+  font-family: 'Monaco', monospace;
 }
 
 .timing-info strong {
-  color: #9b59b6;
-  font-size: 14px;
+  color: #39d353;
+  font-size: 13px;
   display: block;
   margin-bottom: 6px;
 }
 
 .timing-info p {
   margin: 4px 0;
-  color: #666;
+  color: #888;
 }
 
 .morse-grid {
@@ -132,40 +144,47 @@
   flex-direction: column;
   align-items: center;
   padding: 10px;
-  background: #f8f9fa;
+  background: #0f0f0f;
+  border: 1px solid #333;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .morse-item:hover {
-  background: #e9ecef;
+  background: #262626;
+  border-color: #39d353;
   transform: translateY(-2px);
 }
 
 .morse-letter {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  color: #9b59b6;
+  color: #39d353;
   margin-bottom: 4px;
+  font-family: 'Monaco', monospace;
 }
 
 .morse-code {
   font-family: 'Courier New', monospace;
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: #888;
   letter-spacing: 2px;
 }
 
 /* Scrollbar styling */
 .helper-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .helper-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1a1a1a;
 }
 
 .helper-content::-webkit-scrollbar-thumb {
-  background: #9b59b6;
+  background: #333;
   border-radius: 10px;
+}
+
+.helper-content::-webkit-scrollbar-thumb:hover {
+  background: #39d353;
 }
