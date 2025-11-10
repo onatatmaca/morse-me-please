@@ -32,11 +32,12 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentMessageStartTime, setCurrentMessageStartTime] = useState(null);
   const [totalWPM, setTotalWPM] = useState(0);
-  
+
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
   const wordSpaceTimeout = useRef(null);
   const typingTimeout = useRef(null);
+  const morseKeyRef = useRef(null);
 
   // Keyboard event handler
   useEffect(() => {
@@ -237,14 +238,19 @@ export default function App() {
       setCurrentMessageStartTime(Date.now());
     }
 
+    // Trigger visual feedback on the button
+    if (morseKeyRef.current) {
+      morseKeyRef.current.triggerPress(signal);
+    }
+
     socket.emit('morse-message', signal);
-    
+
     const symbol = signal === 'dot' ? '·' : '−';
     setLiveMessage(prev => prev + symbol);
-    
+
     lastSignalTime.current = Date.now();
     setInactivityCountdown(0);
-    
+
     // Clear existing timeouts
     if (letterSpaceTimeout.current) {
       clearTimeout(letterSpaceTimeout.current);
@@ -252,7 +258,7 @@ export default function App() {
     if (wordSpaceTimeout.current) {
       clearTimeout(wordSpaceTimeout.current);
     }
-    
+
     // Letter space
     letterSpaceTimeout.current = setTimeout(() => {
       setLiveMessage(prev => {
@@ -260,12 +266,12 @@ export default function App() {
         return prev + ' ';
       });
     }, settings.letterPause);
-    
+
     // Word boundary
     wordSpaceTimeout.current = setTimeout(() => {
       setLiveMessage(prev => {
-        const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ') 
-          ? prev.slice(0, -1) 
+        const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
+          ? prev.slice(0, -1)
           : prev;
         return trimmed + ' | ';
       });
@@ -388,8 +394,9 @@ export default function App() {
 
       {partnerUsername ? (
         <div className="main-app-content">
-          <MorseKey 
-            onSignal={handleMorseSignal} 
+          <MorseKey
+            ref={morseKeyRef}
+            onSignal={handleMorseSignal}
             disabled={!isMyTurn}
             volume={volume}
             dashThreshold={settings.dashThreshold}
@@ -426,15 +433,13 @@ export default function App() {
             inactivityCountdown={inactivityCountdown}
           />
 
-          <MessageTranscript 
+          <MessageTranscript
             messages={messages}
             liveMessage={liveMessage}
             currentUser={username}
             partnerTyping={partnerTyping}
             currentMessageStartTime={currentMessageStartTime}
           />
-          
-          <MorseHelper />
         </div>
       ) : (
         <div className="main-content">
@@ -443,12 +448,14 @@ export default function App() {
         </div>
       )}
 
-      <SettingsPanel 
+      <SettingsPanel
         settings={settings}
         onSettingsChange={setSettings}
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
+
+      <MorseHelper />
     </div>
   );
 }
