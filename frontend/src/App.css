@@ -20,7 +20,6 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   animation: fadeIn 0.5s ease;
-  backdrop-filter: blur(10px);
 }
 
 @keyframes fadeIn {
