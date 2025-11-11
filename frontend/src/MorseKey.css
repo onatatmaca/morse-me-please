@@ -131,3 +131,127 @@
     opacity: 0;
   }
 }
+
+/* Timing Feedback Display */
+.timing-feedback {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+  border: 3px solid #4CAF50;
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4),
+              0 0 20px rgba(76, 175, 80, 0.3);
+  animation: feedbackSlideIn 0.3s ease-out;
+  z-index: 100;
+}
+
+@keyframes feedbackSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.timing-feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timing-feedback-signal {
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.timing-feedback-accuracy {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.timing-feedback-details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+
+.timing-feedback-label {
+  color: rgba(255, 255, 255, 0.7);
+  text-align: right;
+}
+
+.timing-feedback-value {
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Adaptive Learning Stats */
+.adaptive-stats {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(139, 195, 74, 0.5);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.adaptive-stats-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.adaptive-stats-value {
+  color: #8BC34A;
+  font-weight: bold;
+}
+
+/* Timing Targets Guide */
+.timing-targets {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 8px 16px;
+}
+
+.timing-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.timing-target-symbol {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.timing-target-value {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
