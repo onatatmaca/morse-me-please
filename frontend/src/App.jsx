@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import socket from './socket';
 import UsernameForm from './UsernameForm';
 import MorseKey from './MorseKey';
@@ -6,12 +6,26 @@ import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
 import MorseHelper from './MorseHelper';
 import SettingsPanel from './SettingsPanel';
+import { generateTimingConfig, AdaptiveTiming, WPM_RANGE } from './BPMTiming';
 import './App.css';
 
 const DEFAULT_SETTINGS = {
-  dashThreshold: 300,
-  letterPause: 1500,
-  wordPause: 3000,
+  // BPM-based settings (Phase 1)
+  wpm: WPM_RANGE.DEFAULT, // 20 WPM
+  tolerance: 'medium', // 'strict' | 'medium' | 'relaxed'
+
+  // Farnsworth timing (Phase 3)
+  farnsworthEnabled: false,
+  farnsworthEffectiveWPM: 15,
+
+  // Custom weight (Phase 3)
+  customWeightEnabled: false,
+  customWeight: 3.0, // dash-to-dot ratio (2.5-4.0)
+
+  // Adaptive learning (Phase 3)
+  adaptiveEnabled: false,
+
+  // Legacy settings
   keyboardEnabled: true,
   twoButtonMode: false
 };
@@ -32,12 +46,21 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentMessageStartTime, setCurrentMessageStartTime] = useState(null);
   const [totalWPM, setTotalWPM] = useState(0);
+  const [lastPressTiming, setLastPressTiming] = useState(null); // For timing feedback
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
   const wordSpaceTimeout = useRef(null);
   const typingTimeout = useRef(null);
   const morseKeyRef = useRef(null);
+
+  // Adaptive learning system (Phase 3)
+  const adaptiveTiming = useRef(new AdaptiveTiming());
+
+  // Calculate timing configuration from BPM settings
+  const timingConfig = useMemo(() => {
+    return generateTimingConfig(settings, adaptiveTiming.current);
+  }, [settings]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -89,8 +112,18 @@ export default function App() {
       keyPressStart.current = Date.now();
     } else if (type === 'end' && keyPressStart.current) {
       const duration = Date.now() - keyPressStart.current;
-      const isDash = duration > settings.dashThreshold;
-      handleMorseSignal(isDash ? 'dash' : 'dot');
+      const isDash = duration > timingConfig.dashThreshold;
+      const signal = isDash ? 'dash' : 'dot';
+
+      // Record timing for adaptive learning
+      if (settings.adaptiveEnabled) {
+        adaptiveTiming.current.recordPress(signal, duration);
+      }
+
+      // Store timing for feedback display
+      setLastPressTiming({ duration, signal, target: isDash ? timingConfig.dashLength : timingConfig.dotLength });
+
+      handleMorseSignal(signal, duration);
       keyPressStart.current = null;
     }
   };
@@ -246,10 +279,15 @@ export default function App() {
     return minutes > 0 ? Math.round(words / minutes) : 0;
   };
 
-  const handleMorseSignal = (signal) => {
+  const handleMorseSignal = (signal, duration = null) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
       setCurrentMessageStartTime(Date.now());
+    }
+
+    // Record timing for adaptive learning (if duration provided)
+    if (duration && settings.adaptiveEnabled) {
+      adaptiveTiming.current.recordPress(signal, duration);
     }
 
     // Trigger visual feedback on the button
@@ -273,15 +311,15 @@ export default function App() {
       clearTimeout(wordSpaceTimeout.current);
     }
 
-    // Letter space
+    // Letter space (using BPM-based timing)
     letterSpaceTimeout.current = setTimeout(() => {
       setLiveMessage(prev => {
         if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
         return prev + ' ';
       });
-    }, settings.letterPause);
+    }, timingConfig.letterPause);
 
-    // Word boundary
+    // Word boundary (using BPM-based timing)
     wordSpaceTimeout.current = setTimeout(() => {
       setLiveMessage(prev => {
         const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
@@ -290,7 +328,7 @@ export default function App() {
         return trimmed + ' | ';
       });
       socket.emit('typing-stopped');
-    }, settings.wordPause);
+    }, timingConfig.wordPause);
   };
 
   const handlePassTurn = () => {
@@ -414,21 +452,35 @@ export default function App() {
             onSignal={handleMorseSignal}
             disabled={!isMyTurn}
             volume={volume}
-            dashThreshold={settings.dashThreshold}
+            dashThreshold={timingConfig.dashThreshold}
+            timingConfig={timingConfig}
+            settings={settings}
+            adaptiveTiming={adaptiveTiming.current}
+            lastPressTiming={lastPressTiming}
           />
-          
+
           <div className="timing-guide">
             <div className="timing-item">
               <span className="timing-icon">⚡</span>
-              <span className="timing-label">{(settings.letterPause / 1000).toFixed(1)}s</span>
+              <span className="timing-label">{(timingConfig.letterPause / 1000).toFixed(1)}s</span>
               <span className="timing-desc">Letter space</span>
             </div>
             <div className="timing-divider">|</div>
             <div className="timing-item">
               <span className="timing-icon">⏸️</span>
-              <span className="timing-label">{(settings.wordPause / 1000).toFixed(1)}s</span>
+              <span className="timing-label">{(timingConfig.wordPause / 1000).toFixed(1)}s</span>
               <span className="timing-desc">New word</span>
             </div>
+            {settings.wpm && (
+              <>
+                <div className="timing-divider">|</div>
+                <div className="timing-item">
+                  <span className="timing-icon">🎵</span>
+                  <span className="timing-label">{settings.wpm} WPM</span>
+                  <span className="timing-desc">Speed</span>
+                </div>
+              </>
+            )}
           </div>
 
           {settings.keyboardEnabled && (
@@ -468,6 +520,8 @@ export default function App() {
         onSettingsChange={setSettings}
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
+        timingConfig={timingConfig}
+        adaptiveTiming={adaptiveTiming.current}
       />
     </div>
 
