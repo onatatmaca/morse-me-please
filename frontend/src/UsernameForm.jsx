@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './UsernameForm.css';
 
-export default function UsernameForm({ onSubmit }) {
+export default function UsernameForm({ onSubmit, onlineUsers }) {
   const [username, setUsername] = useState('');
 
   const handleSubmit = (e) => {
@@ -16,7 +16,14 @@ export default function UsernameForm({ onSubmit }) {
       <div className="username-card">
         <h1>🎯 Morse Omegle</h1>
         <p className="subtitle">Connect with strangers through Morse code</p>
-        
+
+        {onlineUsers > 0 && (
+          <div className="online-users-badge">
+            <span className="online-dot"></span>
+            {onlineUsers} {onlineUsers === 1 ? 'user' : 'users'} online
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <input
             type="text"

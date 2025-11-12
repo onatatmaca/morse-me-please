@@ -35,6 +35,7 @@ export default function App() {
   const [autoSendProgress, setAutoSendProgress] = useState(0); // Progress bar for auto-send (0-100)
   const [userFrequency, setUserFrequency] = useState(600); // User's tone frequency
   const [partnerFrequency, setPartnerFrequency] = useState(900); // Partner's tone frequency
+  const [onlineUsers, setOnlineUsers] = useState(0); // Total online users
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
@@ -70,6 +71,10 @@ export default function App() {
   // Refs to store current handlers to avoid stale closures in event listeners
   const handleMorseSignalRef = useRef(null);
   const handleKeyPressRef = useRef(null);
+
+  // Refs to store current message state for auto-send (to avoid stale closures)
+  const myLiveMessageRef = useRef('');
+  const currentMessageStartTimeRef = useRef(null);
 
   // Standalone sound function with frequency parameter (DUPLEX: different tones for user/partner)
   const playMorseSound = (isDash, frequency = userFrequency) => {
@@ -323,12 +328,17 @@ export default function App() {
       setPartnerMessageStartTime(null);
     };
 
+    const handleUserCount = (count) => {
+      setOnlineUsers(count);
+    };
+
     socket.on('connect', handleConnect);
     socket.on('waiting', handleWaiting);
     socket.on('paired', handlePaired);
     socket.on('morse-signal', handleMorseSignal);
     socket.on('morse-message-complete', handleMessageComplete);
     socket.on('partner-disconnected', handlePartnerDisconnected);
+    socket.on('user-count', handleUserCount);
 
     return () => {
       socket.off('connect', handleConnect);
@@ -337,6 +347,7 @@ export default function App() {
       socket.off('morse-signal', handleMorseSignal);
       socket.off('morse-message-complete', handleMessageComplete);
       socket.off('partner-disconnected', handlePartnerDisconnected);
+      socket.off('user-count', handleUserCount);
     };
   }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
 
@@ -361,7 +372,9 @@ export default function App() {
   const handleMorseSignal = (signal) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
-      setCurrentMessageStartTime(Date.now());
+      const now = Date.now();
+      setCurrentMessageStartTime(now);
+      currentMessageStartTimeRef.current = now;
     }
 
     // Trigger visual feedback on the button
@@ -370,7 +383,11 @@ export default function App() {
     }
 
     const symbol = signal === 'dot' ? '·' : '−';
-    setMyLiveMessage(prev => prev + symbol);
+    setMyLiveMessage(prev => {
+      const newMessage = prev + symbol;
+      myLiveMessageRef.current = newMessage;
+      return newMessage;
+    });
 
     // DUPLEX: Send signal to partner in real-time
     socket.emit('morse-signal', {
@@ -436,14 +453,18 @@ export default function App() {
 
   // Auto-send function (triggered after submit delay)
   const autoSendMessage = () => {
-    if (!myLiveMessage.trim()) return;
+    // Read from refs to avoid stale closure values
+    const messageToSend = myLiveMessageRef.current;
+    const startTime = currentMessageStartTimeRef.current;
+
+    if (!messageToSend.trim()) return;
 
     const endTime = Date.now();
-    const wpm = calculateWPM(myLiveMessage, currentMessageStartTime, endTime);
+    const wpm = calculateWPM(messageToSend, startTime, endTime);
 
     // Send to partner
     socket.emit('morse-message-complete', {
-      message: myLiveMessage,
+      message: messageToSend,
       wpm: wpm,
       timestamp: endTime
     });
@@ -451,20 +472,23 @@ export default function App() {
     // Add to own messages
     setMessages(prev => [...prev, {
       from: username,
-      content: myLiveMessage,
+      content: messageToSend,
       timestamp: endTime,
       wpm: wpm
     }]);
 
     // Update total WPM
     setTotalWPM(prev => {
-      const msgCount = messages.filter(m => m.from === username).length + 1;
-      return ((prev * (msgCount - 1)) + wpm) / msgCount;
+      const msgCount = prev === 0 ? 0 : messages.filter(m => m.from === username).length;
+      const newMsgCount = msgCount + 1;
+      return ((prev * msgCount) + wpm) / newMsgCount;
     });
 
     // Clear live message
     setMyLiveMessage('');
+    myLiveMessageRef.current = '';
     setCurrentMessageStartTime(null);
+    currentMessageStartTimeRef.current = null;
   };
 
   const handleDisconnect = () => {
@@ -503,7 +527,7 @@ export default function App() {
   };
 
   if (!username) {
-    return <UsernameForm onSubmit={handleUsernameSubmit} />;
+    return <UsernameForm onSubmit={handleUsernameSubmit} onlineUsers={onlineUsers} />;
   }
 
   return (
@@ -516,16 +540,20 @@ export default function App() {
             {totalWPM > 0 && <span className="wpm-badge">{Math.round(totalWPM)} WPM</span>}
           </span>
           {partnerUsername && (
-            <span className="partner">Partner: {partnerUsername}</span>
+            <span className="partner">
+              Partner: {partnerUsername}
+              {onlineUsers > 0 && (
+                <span className="online-count-badge">{onlineUsers} online</span>
+              )}
+            </span>
           )}
         </div>
         <div className="status-info">
           <div className="status">
             {partnerUsername ? (
               <>
-                🔄 Duplex Mode - Both can send
                 {myLiveMessage && partnerLiveMessage && (
-                  <span className="both-typing-badge"> ⚠️ Both typing!</span>
+                  <span className="both-typing-badge">⚠️ Both typing!</span>
                 )}
               </>
             ) : (
@@ -574,18 +602,14 @@ export default function App() {
         <div className="main-app-content">
           {/* Circle Mode Toggle - iOS style */}
           <div className="input-mode-toggle">
-            <span className="toggle-label">Circle Mode:</span>
             <button
               className={`mode-toggle ${settings.twoCircleMode ? 'active' : ''}`}
               onClick={() => setSettings({ ...settings, twoCircleMode: !settings.twoCircleMode })}
             >
               <div className="toggle-slider">
-                <span className="toggle-option">{settings.twoCircleMode ? 'TWO' : 'SINGLE'}</span>
+                <span className="toggle-option">{settings.twoCircleMode ? 'Two Circles' : 'Single Circle'}</span>
               </div>
             </button>
-            <span className="toggle-hint">
-              {settings.twoCircleMode ? 'Separate Dot/Dash' : 'Hold for timing'}
-            </span>
           </div>
 
           {!settings.twoCircleMode ? (
