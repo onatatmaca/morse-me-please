@@ -171,7 +171,7 @@ io.on('connection', (socket) => {
 
 // Catch-all route to serve index.html in production
 if (!isDev) {
-  app.get('*', (req, res) => {
+  app.get('(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 }
