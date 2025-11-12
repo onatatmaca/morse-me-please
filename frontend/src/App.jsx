@@ -1,33 +1,20 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import socket from './socket';
 import UsernameForm from './UsernameForm';
 import MorseKey from './MorseKey';
 import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
-import MorseHelper from './MorseHelper';
+import MorseHelper, { translateMorse } from './MorseHelper';
 import SettingsPanel from './SettingsPanel';
-import { generateTimingConfig, AdaptiveTiming, WPM_RANGE } from './BPMTiming';
 import './App.css';
 
 const DEFAULT_SETTINGS = {
-  // BPM-based settings (Phase 1)
-  wpm: WPM_RANGE.DEFAULT, // 20 WPM
-  tolerance: 'medium', // 'strict' | 'medium' | 'relaxed'
-
-  // Farnsworth timing (Phase 3)
-  farnsworthEnabled: false,
-  farnsworthEffectiveWPM: 15,
-
-  // Custom weight (Phase 3)
-  customWeightEnabled: false,
-  customWeight: 3.0, // dash-to-dot ratio (2.5-4.0)
-
-  // Adaptive learning (Phase 3)
-  adaptiveEnabled: false,
-
-  // Legacy settings
+  wpm: 20,              // Morse speed (5-40 WPM)
+  submitDelay: 1500,    // Auto-send delay in ms (500-3000ms)
+  showLetters: true,    // Show translation while typing
   keyboardEnabled: true,
-  twoButtonMode: false
+  twoButtonMode: true,  // Z=dot, X=dash (default ON)
+  twoCircleMode: false  // Separate dot/dash buttons for mobile
 };
 
 export default function App() {
@@ -46,21 +33,28 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentMessageStartTime, setCurrentMessageStartTime] = useState(null);
   const [totalWPM, setTotalWPM] = useState(0);
-  const [lastPressTiming, setLastPressTiming] = useState(null); // For timing feedback
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
   const wordSpaceTimeout = useRef(null);
   const typingTimeout = useRef(null);
   const morseKeyRef = useRef(null);
+  const autoSendTimeout = useRef(null); // Auto-send after submit delay
 
-  // Adaptive learning system (Phase 3)
-  const adaptiveTiming = useRef(new AdaptiveTiming());
+  // Calculate timing from WPM (simple formula)
+  const calculateTiming = (wpm) => {
+    const timeUnit = 1200 / wpm;
+    return {
+      timeUnit,
+      dotLength: timeUnit,
+      dashLength: timeUnit * 3,
+      dashThreshold: timeUnit * 2, // Midpoint between dot and dash
+      letterPause: timeUnit * 3,
+      wordPause: timeUnit * 7
+    };
+  };
 
-  // Calculate timing configuration from BPM settings
-  const timingConfig = useMemo(() => {
-    return generateTimingConfig(settings, adaptiveTiming.current);
-  }, [settings]);
+  const timing = calculateTiming(settings.wpm);
 
   // Keyboard event handler
   useEffect(() => {
@@ -68,7 +62,8 @@ export default function App() {
 
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
+
+      // Two-button mode: Z=dot, X=dash, CTRL=send signal
       if (settings.twoButtonMode) {
         if (e.key === 'z' || e.key === 'Z') {
           e.preventDefault();
@@ -76,9 +71,15 @@ export default function App() {
         } else if (e.key === 'x' || e.key === 'X') {
           e.preventDefault();
           handleMorseSignal('dash');
+        } else if (e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
+          e.preventDefault();
+          if (!e.repeat) {
+            handleKeyPress('start');
+          }
         }
       } else {
-        if (e.key === ' ' || e.code === 'Space') {
+        // Hold mode: Spacebar or CTRL
+        if (e.key === ' ' || e.code === 'Space' || e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
           e.preventDefault();
           if (!e.repeat) {
             handleKeyPress('start');
@@ -89,10 +90,18 @@ export default function App() {
 
     const handleKeyUp = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      
-      if (!settings.twoButtonMode && (e.key === ' ' || e.code === 'Space')) {
-        e.preventDefault();
-        handleKeyPress('end');
+
+      if (!settings.twoButtonMode) {
+        if (e.key === ' ' || e.code === 'Space' || e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
+          e.preventDefault();
+          handleKeyPress('end');
+        }
+      } else {
+        // In two-button mode, CTRL can still be used for hold timing
+        if (e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
+          e.preventDefault();
+          handleKeyPress('end');
+        }
       }
     };
 
@@ -112,18 +121,10 @@ export default function App() {
       keyPressStart.current = Date.now();
     } else if (type === 'end' && keyPressStart.current) {
       const duration = Date.now() - keyPressStart.current;
-      const isDash = duration > timingConfig.dashThreshold;
+      const isDash = duration > timing.dashThreshold;
       const signal = isDash ? 'dash' : 'dot';
 
-      // Record timing for adaptive learning
-      if (settings.adaptiveEnabled) {
-        adaptiveTiming.current.recordPress(signal, duration);
-      }
-
-      // Store timing for feedback display
-      setLastPressTiming({ duration, signal, target: isDash ? timingConfig.dashLength : timingConfig.dotLength });
-
-      handleMorseSignal(signal, duration);
+      handleMorseSignal(signal);
       keyPressStart.current = null;
     }
   };
@@ -171,30 +172,14 @@ export default function App() {
       });
     });
 
-    socket.on('turn-passed', () => {
-      if (liveMessage.trim()) {
-        const endTime = Date.now();
-        const wpm = calculateWPM(liveMessage, currentMessageStartTime, endTime);
-        
-        setMessages(prev => [...prev, {
-          from: username,
-          content: liveMessage,
-          timestamp: endTime,
-          wpm: wpm
-        }]);
-        
-        // Update total WPM (running average)
-        setTotalWPM(prev => {
-          const msgCount = messages.filter(m => m.from === username).length + 1;
-          return ((prev * (msgCount - 1)) + wpm) / msgCount;
-        });
-        
-        setLiveMessage('');
-        setCurrentMessageStartTime(null);
-      }
-      setIsMyTurn(false);
-      setStatus(`Waiting for ${partnerUsername}...`);
-      setInactivityCountdown(0);
+    // Handle completed morse message from partner
+    socket.on('morse-message-complete', (data) => {
+      setMessages(prev => [...prev, {
+        from: data.from,
+        content: data.message,
+        timestamp: data.timestamp,
+        wpm: data.wpm
+      }]);
     });
 
     socket.on('auto-passed', () => {
@@ -208,41 +193,7 @@ export default function App() {
       setInactivityCountdown(remaining);
     });
 
-    socket.on('morse-message', (data) => {
-      const symbol = data.signal === 'dot' ? '·' : '−';
-      
-      setMessages(prev => {
-        const lastMsg = prev[prev.length - 1];
-        
-        if (lastMsg && lastMsg.from === data.from && lastMsg.isLive) {
-          return [
-            ...prev.slice(0, -1),
-            { ...lastMsg, content: lastMsg.content + symbol }
-          ];
-        } else {
-          return [...prev, {
-            from: data.from,
-            content: symbol,
-            isLive: true,
-            timestamp: Date.now()
-          }];
-        }
-      });
-    });
-
-    socket.on('partner-typing', (isTyping) => {
-      setPartnerTyping(isTyping);
-      
-      if (typingTimeout.current) {
-        clearTimeout(typingTimeout.current);
-      }
-      
-      if (isTyping) {
-        typingTimeout.current = setTimeout(() => {
-          setPartnerTyping(false);
-        }, 4000);
-      }
-    });
+    // No longer needed - we use morse-message-complete now
 
     socket.on('partner-disconnected', () => {
       setStatus('Partner disconnected');
@@ -260,11 +211,9 @@ export default function App() {
       socket.off('waiting');
       socket.off('paired');
       socket.off('your-turn');
-      socket.off('turn-passed');
+      socket.off('morse-message-complete');
       socket.off('auto-passed');
       socket.off('inactivity-warning');
-      socket.off('morse-message');
-      socket.off('partner-typing');
       socket.off('partner-disconnected');
     };
   }, [username, partnerUsername, liveMessage, messages, currentMessageStartTime]);
@@ -279,23 +228,16 @@ export default function App() {
     return minutes > 0 ? Math.round(words / minutes) : 0;
   };
 
-  const handleMorseSignal = (signal, duration = null) => {
+  const handleMorseSignal = (signal) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
       setCurrentMessageStartTime(Date.now());
-    }
-
-    // Record timing for adaptive learning (if duration provided)
-    if (duration && settings.adaptiveEnabled) {
-      adaptiveTiming.current.recordPress(signal, duration);
     }
 
     // Trigger visual feedback on the button
     if (morseKeyRef.current) {
       morseKeyRef.current.triggerPress(signal);
     }
-
-    socket.emit('morse-message', signal);
 
     const symbol = signal === 'dot' ? '·' : '−';
     setLiveMessage(prev => prev + symbol);
@@ -310,16 +252,19 @@ export default function App() {
     if (wordSpaceTimeout.current) {
       clearTimeout(wordSpaceTimeout.current);
     }
+    if (autoSendTimeout.current) {
+      clearTimeout(autoSendTimeout.current);
+    }
 
-    // Letter space (using BPM-based timing)
+    // Letter space
     letterSpaceTimeout.current = setTimeout(() => {
       setLiveMessage(prev => {
         if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
         return prev + ' ';
       });
-    }, timingConfig.letterPause);
+    }, timing.letterPause);
 
-    // Word boundary (using BPM-based timing)
+    // Word boundary
     wordSpaceTimeout.current = setTimeout(() => {
       setLiveMessage(prev => {
         const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
@@ -327,8 +272,45 @@ export default function App() {
           : prev;
         return trimmed + ' | ';
       });
-      socket.emit('typing-stopped');
-    }, timingConfig.wordPause);
+    }, timing.wordPause);
+
+    // Auto-send after submit delay
+    autoSendTimeout.current = setTimeout(() => {
+      autoSendMessage();
+    }, settings.submitDelay);
+  };
+
+  // Auto-send function (triggered after submit delay)
+  const autoSendMessage = () => {
+    if (!liveMessage.trim()) return;
+
+    const endTime = Date.now();
+    const wpm = calculateWPM(liveMessage, currentMessageStartTime, endTime);
+
+    // Send to partner
+    socket.emit('morse-message-complete', {
+      message: liveMessage,
+      wpm: wpm,
+      timestamp: endTime
+    });
+
+    // Add to own messages
+    setMessages(prev => [...prev, {
+      from: username,
+      content: liveMessage,
+      timestamp: endTime,
+      wpm: wpm
+    }]);
+
+    // Update total WPM
+    setTotalWPM(prev => {
+      const msgCount = messages.filter(m => m.from === username).length + 1;
+      return ((prev * (msgCount - 1)) + wpm) / msgCount;
+    });
+
+    // Clear live message
+    setLiveMessage('');
+    setCurrentMessageStartTime(null);
   };
 
   const handlePassTurn = () => {
@@ -447,47 +429,65 @@ export default function App() {
 
       {partnerUsername ? (
         <div className="main-app-content">
-          <MorseKey
-            ref={morseKeyRef}
-            onSignal={handleMorseSignal}
-            disabled={!isMyTurn}
-            volume={volume}
-            dashThreshold={timingConfig.dashThreshold}
-            timingConfig={timingConfig}
-            settings={settings}
-            adaptiveTiming={adaptiveTiming.current}
-            lastPressTiming={lastPressTiming}
-          />
+          {!settings.twoCircleMode ? (
+            <MorseKey
+              ref={morseKeyRef}
+              onSignal={handleMorseSignal}
+              disabled={!isMyTurn}
+              volume={volume}
+              dashThreshold={timing.dashThreshold}
+            />
+          ) : (
+            <div className="two-circle-container">
+              <button
+                className="circle-button dot-button"
+                onMouseDown={() => handleMorseSignal('dot')}
+                onTouchStart={() => handleMorseSignal('dot')}
+                disabled={!isMyTurn}
+              >
+                <span className="circle-label">DOT</span>
+                <span className="circle-symbol">·</span>
+              </button>
+              <button
+                className="circle-button dash-button"
+                onMouseDown={() => handleMorseSignal('dash')}
+                onTouchStart={() => handleMorseSignal('dash')}
+                disabled={!isMyTurn}
+              >
+                <span className="circle-label">DASH</span>
+                <span className="circle-symbol">−</span>
+              </button>
+            </div>
+          )}
+
+          {settings.showLetters && liveMessage && (
+            <div className="live-translation">
+              <div className="morse-symbols">{liveMessage}</div>
+              <div className="translated-text">
+                {translateMorse(liveMessage)}
+              </div>
+            </div>
+          )}
 
           <div className="timing-guide">
             <div className="timing-item">
-              <span className="timing-icon">⚡</span>
-              <span className="timing-label">{(timingConfig.letterPause / 1000).toFixed(1)}s</span>
-              <span className="timing-desc">Letter space</span>
+              <span className="timing-icon">🎵</span>
+              <span className="timing-label">{settings.wpm} WPM</span>
+              <span className="timing-desc">Speed</span>
             </div>
             <div className="timing-divider">|</div>
             <div className="timing-item">
-              <span className="timing-icon">⏸️</span>
-              <span className="timing-label">{(timingConfig.wordPause / 1000).toFixed(1)}s</span>
-              <span className="timing-desc">New word</span>
+              <span className="timing-icon">⏱️</span>
+              <span className="timing-label">{(settings.submitDelay / 1000).toFixed(1)}s</span>
+              <span className="timing-desc">Auto-send delay</span>
             </div>
-            {settings.wpm && (
-              <>
-                <div className="timing-divider">|</div>
-                <div className="timing-item">
-                  <span className="timing-icon">🎵</span>
-                  <span className="timing-label">{settings.wpm} WPM</span>
-                  <span className="timing-desc">Speed</span>
-                </div>
-              </>
-            )}
           </div>
 
           {settings.keyboardEnabled && (
             <div className="keyboard-hint">
-              {settings.twoButtonMode 
-                ? '⌨️ Z = Dot | X = Dash' 
-                : '⌨️ Hold Spacebar to type'
+              {settings.twoButtonMode
+                ? '⌨️ Z = Dot | X = Dash | CTRL = Hold'
+                : '⌨️ Hold Spacebar or CTRL'
               }
             </div>
           )}
@@ -520,8 +520,6 @@ export default function App() {
         onSettingsChange={setSettings}
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
-        timingConfig={timingConfig}
-        adaptiveTiming={adaptiveTiming.current}
       />
     </div>
 
