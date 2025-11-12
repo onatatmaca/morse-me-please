@@ -9,11 +9,11 @@ import SettingsPanel from './SettingsPanel';
 import './App.css';
 
 const DEFAULT_SETTINGS = {
-  wpm: 20,              // Morse speed (5-40 WPM)
-  submitDelay: 1500,    // Auto-send delay in ms (500-3000ms)
+  wpm: 12,              // Morse speed (5-40 WPM) - Starting slower for beginners
+  submitDelay: 2500,    // Auto-send delay in ms (1000-5000ms) - More time to compose
   showLetters: true,    // Show translation while typing
   keyboardEnabled: true,
-  twoButtonMode: true,  // Z=dot, X=dash (default ON)
+  twoButtonMode: true,  // Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash (default ON)
   twoCircleMode: false  // Separate dot/dash buttons for mobile
 };
 
@@ -33,6 +33,8 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [currentMessageStartTime, setCurrentMessageStartTime] = useState(null);
   const [totalWPM, setTotalWPM] = useState(0);
+  const [autoSendProgress, setAutoSendProgress] = useState(0); // Progress bar for auto-send (0-100)
+  const [isMousePressed, setIsMousePressed] = useState(false); // Track if mouse is currently pressed
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
@@ -40,6 +42,7 @@ export default function App() {
   const typingTimeout = useRef(null);
   const morseKeyRef = useRef(null);
   const autoSendTimeout = useRef(null); // Auto-send after submit delay
+  const progressInterval = useRef(null); // Progress bar animation interval
 
   // Calculate timing from WPM (simple formula)
   const calculateTiming = (wpm) => {
@@ -63,23 +66,22 @@ export default function App() {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Two-button mode: Z=dot, X=dash, CTRL=send signal
+      // Two-button mode: Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash
       if (settings.twoButtonMode) {
-        if (e.key === 'z' || e.key === 'Z') {
-          e.preventDefault();
-          handleMorseSignal('dot');
-        } else if (e.key === 'x' || e.key === 'X') {
-          e.preventDefault();
-          handleMorseSignal('dash');
-        } else if (e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
+        if (e.key === 'z' || e.key === 'Z' || e.code === 'ControlLeft') {
           e.preventDefault();
           if (!e.repeat) {
-            handleKeyPress('start');
+            handleMorseSignal('dot');
+          }
+        } else if (e.key === 'x' || e.key === 'X' || e.code === 'ControlRight') {
+          e.preventDefault();
+          if (!e.repeat) {
+            handleMorseSignal('dash');
           }
         }
       } else {
-        // Hold mode: Spacebar or CTRL
-        if (e.key === ' ' || e.code === 'Space' || e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
+        // Hold mode: Spacebar only
+        if (e.key === ' ' || e.code === 'Space') {
           e.preventDefault();
           if (!e.repeat) {
             handleKeyPress('start');
@@ -92,13 +94,7 @@ export default function App() {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       if (!settings.twoButtonMode) {
-        if (e.key === ' ' || e.code === 'Space' || e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
-          e.preventDefault();
-          handleKeyPress('end');
-        }
-      } else {
-        // In two-button mode, CTRL can still be used for hold timing
-        if (e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight') {
+        if (e.key === ' ' || e.code === 'Space') {
           e.preventDefault();
           handleKeyPress('end');
         }
@@ -255,29 +251,50 @@ export default function App() {
     if (autoSendTimeout.current) {
       clearTimeout(autoSendTimeout.current);
     }
+    if (progressInterval.current) {
+      clearInterval(progressInterval.current);
+    }
 
-    // Letter space
-    letterSpaceTimeout.current = setTimeout(() => {
-      setLiveMessage(prev => {
-        if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
-        return prev + ' ';
-      });
-    }, timing.letterPause);
+    // Reset progress bar
+    setAutoSendProgress(0);
 
-    // Word boundary
-    wordSpaceTimeout.current = setTimeout(() => {
-      setLiveMessage(prev => {
-        const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
-          ? prev.slice(0, -1)
-          : prev;
-        return trimmed + ' | ';
-      });
-    }, timing.wordPause);
+    // Only schedule letter/word spacing if mouse is NOT currently pressed
+    // This prevents the issue where holding the mouse button triggers spacing too early
+    if (!isMousePressed) {
+      // Letter space
+      letterSpaceTimeout.current = setTimeout(() => {
+        setLiveMessage(prev => {
+          if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
+          return prev + ' ';
+        });
+      }, timing.letterPause);
 
-    // Auto-send after submit delay
-    autoSendTimeout.current = setTimeout(() => {
-      autoSendMessage();
-    }, settings.submitDelay);
+      // Word boundary
+      wordSpaceTimeout.current = setTimeout(() => {
+        setLiveMessage(prev => {
+          const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
+            ? prev.slice(0, -1)
+            : prev;
+          return trimmed + ' | ';
+        });
+      }, timing.wordPause);
+
+      // Auto-send after submit delay with progress bar
+      const startTime = Date.now();
+      progressInterval.current = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min((elapsed / settings.submitDelay) * 100, 100);
+        setAutoSendProgress(progress);
+      }, 50); // Update every 50ms for smooth animation
+
+      autoSendTimeout.current = setTimeout(() => {
+        autoSendMessage();
+        setAutoSendProgress(0);
+        if (progressInterval.current) {
+          clearInterval(progressInterval.current);
+        }
+      }, settings.submitDelay);
+    }
   };
 
   // Auto-send function (triggered after submit delay)
@@ -429,6 +446,22 @@ export default function App() {
 
       {partnerUsername ? (
         <div className="main-app-content">
+          {/* Two-Button Mode Toggle - iOS style */}
+          <div className="input-mode-toggle">
+            <span className="toggle-label">Input Mode:</span>
+            <button
+              className={`mode-toggle ${settings.twoButtonMode ? 'active' : ''}`}
+              onClick={() => setSettings({ ...settings, twoButtonMode: !settings.twoButtonMode })}
+            >
+              <div className="toggle-slider">
+                <span className="toggle-option">{settings.twoButtonMode ? 'Z/X' : 'HOLD'}</span>
+              </div>
+            </button>
+            <span className="toggle-hint">
+              {settings.twoButtonMode ? 'Z=· | X=−' : 'Hold for −'}
+            </span>
+          </div>
+
           {!settings.twoCircleMode ? (
             <MorseKey
               ref={morseKeyRef}
@@ -436,13 +469,25 @@ export default function App() {
               disabled={!isMyTurn}
               volume={volume}
               dashThreshold={timing.dashThreshold}
+              onMouseStateChange={setIsMousePressed}
             />
           ) : (
             <div className="two-circle-container">
               <button
                 className="circle-button dot-button"
-                onMouseDown={() => handleMorseSignal('dot')}
-                onTouchStart={() => handleMorseSignal('dot')}
+                onMouseDown={() => {
+                  handleMorseSignal('dot');
+                  // Play sound
+                  if (morseKeyRef.current) {
+                    morseKeyRef.current.playSound(false);
+                  }
+                }}
+                onTouchStart={() => {
+                  handleMorseSignal('dot');
+                  if (morseKeyRef.current) {
+                    morseKeyRef.current.playSound(false);
+                  }
+                }}
                 disabled={!isMyTurn}
               >
                 <span className="circle-label">DOT</span>
@@ -450,8 +495,19 @@ export default function App() {
               </button>
               <button
                 className="circle-button dash-button"
-                onMouseDown={() => handleMorseSignal('dash')}
-                onTouchStart={() => handleMorseSignal('dash')}
+                onMouseDown={() => {
+                  handleMorseSignal('dash');
+                  // Play sound
+                  if (morseKeyRef.current) {
+                    morseKeyRef.current.playSound(true);
+                  }
+                }}
+                onTouchStart={() => {
+                  handleMorseSignal('dash');
+                  if (morseKeyRef.current) {
+                    morseKeyRef.current.playSound(true);
+                  }
+                }}
                 disabled={!isMyTurn}
               >
                 <span className="circle-label">DASH</span>
@@ -466,6 +522,12 @@ export default function App() {
               <div className="translated-text">
                 {translateMorse(liveMessage)}
               </div>
+              {/* Auto-send progress bar */}
+              {autoSendProgress > 0 && (
+                <div className="auto-send-progress-container">
+                  <div className="auto-send-progress-bar" style={{ width: `${autoSendProgress}%` }} />
+                </div>
+              )}
             </div>
           )}
 
@@ -486,8 +548,8 @@ export default function App() {
           {settings.keyboardEnabled && (
             <div className="keyboard-hint">
               {settings.twoButtonMode
-                ? '⌨️ Z = Dot | X = Dash | CTRL = Hold'
-                : '⌨️ Hold Spacebar or CTRL'
+                ? '⌨️ Z / Left CTRL = Dot (·) | X / Right CTRL = Dash (−)'
+                : '⌨️ Hold Spacebar (duration = dot/dash)'
               }
             </div>
           )}
