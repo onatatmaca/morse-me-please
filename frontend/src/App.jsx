@@ -71,6 +71,10 @@ export default function App() {
   const handleMorseSignalRef = useRef(null);
   const handleKeyPressRef = useRef(null);
 
+  // Refs to store current message state for auto-send (to avoid stale closures)
+  const myLiveMessageRef = useRef('');
+  const currentMessageStartTimeRef = useRef(null);
+
   // Standalone sound function with frequency parameter (DUPLEX: different tones for user/partner)
   const playMorseSound = (isDash, frequency = userFrequency) => {
     if (!audioContextRef.current || volume === 0) return;
@@ -361,7 +365,9 @@ export default function App() {
   const handleMorseSignal = (signal) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
-      setCurrentMessageStartTime(Date.now());
+      const now = Date.now();
+      setCurrentMessageStartTime(now);
+      currentMessageStartTimeRef.current = now;
     }
 
     // Trigger visual feedback on the button
@@ -370,7 +376,11 @@ export default function App() {
     }
 
     const symbol = signal === 'dot' ? '·' : '−';
-    setMyLiveMessage(prev => prev + symbol);
+    setMyLiveMessage(prev => {
+      const newMessage = prev + symbol;
+      myLiveMessageRef.current = newMessage;
+      return newMessage;
+    });
 
     // DUPLEX: Send signal to partner in real-time
     socket.emit('morse-signal', {
@@ -436,14 +446,18 @@ export default function App() {
 
   // Auto-send function (triggered after submit delay)
   const autoSendMessage = () => {
-    if (!myLiveMessage.trim()) return;
+    // Read from refs to avoid stale closure values
+    const messageToSend = myLiveMessageRef.current;
+    const startTime = currentMessageStartTimeRef.current;
+
+    if (!messageToSend.trim()) return;
 
     const endTime = Date.now();
-    const wpm = calculateWPM(myLiveMessage, currentMessageStartTime, endTime);
+    const wpm = calculateWPM(messageToSend, startTime, endTime);
 
     // Send to partner
     socket.emit('morse-message-complete', {
-      message: myLiveMessage,
+      message: messageToSend,
       wpm: wpm,
       timestamp: endTime
     });
@@ -451,20 +465,23 @@ export default function App() {
     // Add to own messages
     setMessages(prev => [...prev, {
       from: username,
-      content: myLiveMessage,
+      content: messageToSend,
       timestamp: endTime,
       wpm: wpm
     }]);
 
     // Update total WPM
     setTotalWPM(prev => {
-      const msgCount = messages.filter(m => m.from === username).length + 1;
-      return ((prev * (msgCount - 1)) + wpm) / msgCount;
+      const msgCount = prev === 0 ? 0 : messages.filter(m => m.from === username).length;
+      const newMsgCount = msgCount + 1;
+      return ((prev * msgCount) + wpm) / newMsgCount;
     });
 
     // Clear live message
     setMyLiveMessage('');
+    myLiveMessageRef.current = '';
     setCurrentMessageStartTime(null);
+    currentMessageStartTimeRef.current = null;
   };
 
   const handleDisconnect = () => {
