@@ -170,7 +170,6 @@ export default function App() {
   // Refs for partner's message timing
   const partnerLetterSpaceTimeout = useRef(null);
   const partnerWordSpaceTimeout = useRef(null);
-  const partnerAutoSendTimeout = useRef(null);
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -210,15 +209,12 @@ export default function App() {
       const symbol = data.signal === 'dot' ? '·' : '−';
       setPartnerLiveMessage(prev => prev + symbol);
 
-      // Clear existing partner timeouts
+      // Clear existing partner timeouts (only letter/word spacing, NOT auto-send)
       if (partnerLetterSpaceTimeout.current) {
         clearTimeout(partnerLetterSpaceTimeout.current);
       }
       if (partnerWordSpaceTimeout.current) {
         clearTimeout(partnerWordSpaceTimeout.current);
-      }
-      if (partnerAutoSendTimeout.current) {
-        clearTimeout(partnerAutoSendTimeout.current);
       }
 
       // Schedule partner's letter/word spacing
@@ -238,24 +234,20 @@ export default function App() {
         });
       }, timing.wordPause);
 
-      // Auto-finalize partner's message after submit delay
-      partnerAutoSendTimeout.current = setTimeout(() => {
-        const finalMessage = partnerLiveMessage;
-        if (finalMessage.trim()) {
-          setMessages(prev => [...prev, {
-            from: data.from,
-            content: finalMessage,
-            timestamp: Date.now(),
-            wpm: 0 // Will be calculated if needed
-          }]);
-          setPartnerLiveMessage('');
-          setPartnerMessageStartTime(null);
-        }
-      }, settings.submitDelay);
+      // NOTE: We do NOT auto-finalize partner's message locally
+      // Partner will send morse-message-complete when they're done
     });
 
     // Handle completed morse message from partner (auto-send)
     socket.on('morse-message-complete', (data) => {
+      // Clear partner's timeouts
+      if (partnerLetterSpaceTimeout.current) {
+        clearTimeout(partnerLetterSpaceTimeout.current);
+      }
+      if (partnerWordSpaceTimeout.current) {
+        clearTimeout(partnerWordSpaceTimeout.current);
+      }
+
       // Clear partner's live message and add to finalized messages
       setPartnerLiveMessage('');
       setPartnerMessageStartTime(null);
@@ -538,6 +530,7 @@ export default function App() {
               volume={volume}
               dashThreshold={timing.dashThreshold}
               onMouseStateChange={setIsMousePressed}
+              onPlaySound={(isDash) => playMorseSound(isDash, userFrequency)}
             />
           ) : (
             <div className="two-circle-container">
