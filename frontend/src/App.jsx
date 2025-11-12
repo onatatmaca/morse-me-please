@@ -542,9 +542,6 @@ export default function App() {
           {partnerUsername && (
             <span className="partner">
               Partner: {partnerUsername}
-              {onlineUsers > 0 && (
-                <span className="online-count-badge">{onlineUsers} online</span>
-              )}
             </span>
           )}
         </div>
@@ -561,9 +558,17 @@ export default function App() {
             )}
           </div>
 
-          <div className="connection-status">
-            <span className={`connection-dot ${connected ? 'connected' : 'disconnected'}`}></span>
-            {connected ? 'Connected' : 'Disconnected'}
+          <div className="right-status-group">
+            {onlineUsers > 0 && (
+              <div className="online-count-indicator">
+                <span className="online-dot-small"></span>
+                {onlineUsers} online
+              </div>
+            )}
+            <div className="connection-status">
+              <span className={`connection-dot ${connected ? 'connected' : 'disconnected'}`}></span>
+              {connected ? 'Connected' : 'Disconnected'}
+            </div>
           </div>
         </div>
         
@@ -710,6 +715,11 @@ export default function App() {
         <div className="main-content">
           <h2>⏳ {status}</h2>
           <p className="waiting-hint">Open another tab or share with a friend to connect!</p>
+          {status === 'Partner disconnected' && (
+            <button className="find-partner-btn" onClick={handleFindNew}>
+              🔄 Find New Partner
+            </button>
+          )}
         </div>
       )}
 

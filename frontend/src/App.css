@@ -99,6 +99,32 @@ html, body, #root {
   font-weight: bold;
 }
 
+.right-status-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.online-count-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5b9aff;
+  font-weight: 600;
+  font-family: 'Monaco', monospace;
+}
+
+.online-dot-small {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5b9aff;
+  box-shadow: 0 0 6px #5b9aff;
+  animation: blink 2s ease-in-out infinite;
+}
+
 .status-info {
   display: flex;
   justify-content: space-between;
@@ -331,6 +357,26 @@ html, body, #root {
   margin-top: 10px;
 }
 
+.find-partner-btn {
+  margin-top: 24px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.find-partner-btn:hover {
+  background: linear-gradient(135deg, #2980b9, #21618c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
 .timing-guide {
   display: flex;
   justify-content: center;
@@ -393,76 +439,212 @@ html, body, #root {
   .app-container {
     border-radius: 0;
   }
-  
+
   .status-bar {
-    padding: 12px 16px;
-    padding-bottom: 50px;
+    padding: 8px 12px;
+    padding-bottom: 42px;
   }
-  
+
   .user-info {
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     max-width: 100%;
-    font-size: 13px;
+    font-size: 11px;
   }
-  
+
   .username, .partner {
-    font-size: 13px;
+    font-size: 11px;
+    padding: 3px 8px;
   }
-  
+
+  .wpm-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+
   .status-info {
     flex-direction: column;
     align-items: flex-start;
+    gap: 4px;
+  }
+
+  .right-status-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .online-count-indicator,
+  .connection-status {
+    font-size: 10px;
   }
 
   .volume-btn {
-    right: 50px;
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    right: 42px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    bottom: 6px;
   }
-  
+
   .settings-btn {
-    right: 10px;
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    bottom: 6px;
   }
-  
+
   .volume-control {
-    right: 50px;
-    bottom: 50px;
+    right: 42px;
+    bottom: 40px;
+    padding: 8px 12px;
   }
-  
-  .timing-guide {
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px;
-    margin: 0 10px;
-  }
-  
-  .timing-divider {
+
+  /* Hide keyboard hint on mobile - not needed */
+  .keyboard-hint {
     display: none;
   }
-  
-  .keyboard-hint {
-    margin: 0 10px;
+
+  /* Keep timing guide compact and horizontal */
+  .timing-guide {
+    padding: 6px 12px;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .timing-item {
+    gap: 1px;
+  }
+
+  .timing-icon {
+    font-size: 12px;
+  }
+
+  .timing-label {
+    font-size: 10px;
+  }
+
+  .timing-desc {
+    font-size: 8px;
+  }
+
+  .timing-divider {
+    font-size: 14px;
+  }
+
+  /* Make input mode toggle smaller */
+  .input-mode-toggle {
+    padding: 4px 12px;
+    margin: 0 12px 6px;
+  }
+
+  .mode-toggle {
+    width: 120px;
+    height: 30px;
+  }
+
+  .toggle-option {
+    font-size: 10px;
+  }
+
+  /* Make morse circles smaller on mobile */
+  .two-circle-container {
+    gap: 16px;
+    padding: 10px;
+    min-height: 140px;
+  }
+
+  .circle-button {
+    width: 110px;
+    height: 110px;
+    border-width: 4px;
+  }
+
+  .circle-label {
     font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .circle-symbol {
+    font-size: 30px;
+  }
+
+  /* Make live translation more compact */
+  .live-translation {
+    margin: 0 12px 8px;
+    padding: 8px 10px;
+  }
+
+  .morse-symbols {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .translated-text {
+    font-size: 12px;
+    padding-top: 6px;
+  }
+
+  /* Compact find partner button */
+  .find-partner-btn {
+    margin-top: 16px;
+    padding: 10px 24px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 480px) {
   .status-bar {
-    padding: 10px 12px;
-    padding-bottom: 48px;
+    padding: 6px 10px;
+    padding-bottom: 40px;
   }
-  
+
   .main-content h2 {
-    font-size: 24px;
+    font-size: 20px;
+    margin-bottom: 12px;
   }
-  
+
   .waiting-hint {
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  /* Extra compact for very small screens */
+  .timing-guide {
+    padding: 4px 8px;
+    gap: 8px;
+  }
+
+  .timing-icon {
+    font-size: 10px;
+  }
+
+  .timing-label {
+    font-size: 9px;
+  }
+
+  .timing-desc {
+    font-size: 7px;
+  }
+
+  .two-circle-container {
+    gap: 12px;
+    padding: 8px;
+    min-height: 120px;
+  }
+
+  .circle-button {
+    width: 100px;
+    height: 100px;
+    border-width: 3px;
+  }
+
+  .circle-label {
+    font-size: 10px;
+  }
+
+  .circle-symbol {
+    font-size: 26px;
   }
 }
 
@@ -672,58 +854,5 @@ html, body, #root {
   }
   50% {
     opacity: 1;
-  }
-}
-
-/* Responsive for two-circle mode */
-@media (max-width: 768px) {
-  .two-circle-container {
-    gap: 20px;
-  }
-
-  .circle-button {
-    width: 140px;
-    height: 140px;
-  }
-
-  .circle-label {
-    font-size: 14px;
-  }
-
-  .circle-symbol {
-    font-size: 36px;
-  }
-
-  .live-translation {
-    margin: 0 10px 10px;
-    padding: 12px 16px;
-  }
-
-  .morse-symbols {
-    font-size: 18px;
-  }
-
-  .translated-text {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .two-circle-container {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .circle-button {
-    width: 120px;
-    height: 120px;
-  }
-
-  .circle-label {
-    font-size: 12px;
-  }
-
-  .circle-symbol {
-    font-size: 32px;
   }
 }

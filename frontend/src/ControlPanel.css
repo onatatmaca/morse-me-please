@@ -89,3 +89,47 @@
     transform: scale(1.1);
   }
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .control-panel {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .control-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    min-width: 110px;
+    border-radius: 8px;
+  }
+
+  .btn-icon {
+    font-size: 15px;
+  }
+
+  .btn-text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .control-panel {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .control-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+    min-width: 100px;
+  }
+
+  .btn-icon {
+    font-size: 14px;
+  }
+
+  .btn-text {
+    font-size: 11px;
+  }
+}
