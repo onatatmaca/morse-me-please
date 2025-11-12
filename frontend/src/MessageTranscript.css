@@ -264,22 +264,146 @@
   background: #39d353;
 }
 
+/* Dual-Lane Layout */
+.dual-lane-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  background: #0f0f0f;
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.user-lane {
+  background: rgba(57, 211, 83, 0.05);
+  border: 2px solid rgba(57, 211, 83, 0.3);
+}
+
+.partner-lane {
+  background: rgba(91, 154, 255, 0.05);
+  border: 2px solid rgba(91, 154, 255, 0.3);
+}
+
+.lane-header {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.lane-title {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Monaco', monospace;
+}
+
+.user-lane .lane-title {
+  color: #39d353;
+}
+
+.partner-lane .lane-title {
+  color: #5b9aff;
+}
+
+.lane-freq {
+  font-size: 11px;
+  font-family: 'Monaco', monospace;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #999;
+}
+
+.lane-content {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.lane-content .message {
+  max-width: 100%;
+  align-self: stretch !important;
+}
+
+.live-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  font-style: italic;
+  opacity: 0.8;
+  animation: blinkIndicator 1.5s ease-in-out infinite;
+}
+
+@keyframes blinkIndicator {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+.lane-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lane-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.lane-content::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+.user-lane .lane-content::-webkit-scrollbar-thumb:hover {
+  background: #39d353;
+}
+
+.partner-lane .lane-content::-webkit-scrollbar-thumb:hover {
+  background: #5b9aff;
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .transcript {
     margin: 5px 10px 10px 10px;
   }
-  
+
+  .dual-lane-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .lane {
+    max-height: 40vh;
+  }
+
   .message {
     max-width: 85%;
   }
-  
+
   .message-content {
     font-size: 14px;
     letter-spacing: 1.5px;
     padding: 8px 12px;
   }
-  
+
   .message-translation {
     font-size: 12px;
   }

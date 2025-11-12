@@ -2,37 +2,57 @@ import React, { useEffect, useRef, useState } from 'react';
 import { translateMorse } from './MorseHelper';
 import './MessageTranscript.css';
 
-export default function MessageTranscript({ 
-  messages, 
-  liveMessage, 
+export default function MessageTranscript({
+  messages,
+  myLiveMessage,
+  partnerLiveMessage,
   currentUser,
-  partnerTyping,
-  currentMessageStartTime
+  partnerUsername,
+  currentMessageStartTime,
+  partnerMessageStartTime
 }) {
   const transcriptEndRef = useRef(null);
   const [showTranslation, setShowTranslation] = useState(false);
-  const [liveWPM, setLiveWPM] = useState(0);
+  const [myLiveWPM, setMyLiveWPM] = useState(0);
+  const [partnerLiveWPM, setPartnerLiveWPM] = useState(0);
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, liveMessage]);
+  }, [messages, myLiveMessage, partnerLiveMessage]);
 
-  // Calculate live WPM while typing
+  // Calculate user's live WPM while typing
   useEffect(() => {
-    if (!currentMessageStartTime || !liveMessage) {
-      setLiveWPM(0);
+    if (!currentMessageStartTime || !myLiveMessage) {
+      setMyLiveWPM(0);
       return;
     }
 
     const interval = setInterval(() => {
-      const words = liveMessage.split(' | ').length;
+      const words = myLiveMessage.split(' | ').length;
       const minutes = (Date.now() - currentMessageStartTime) / 60000;
       const wpm = minutes > 0 ? Math.round(words / minutes) : 0;
-      setLiveWPM(wpm);
+      setMyLiveWPM(wpm);
     }, 500);
 
     return () => clearInterval(interval);
-  }, [currentMessageStartTime, liveMessage]);
+  }, [currentMessageStartTime, myLiveMessage]);
+
+  // Calculate partner's live WPM while typing
+  useEffect(() => {
+    if (!partnerMessageStartTime || !partnerLiveMessage) {
+      setPartnerLiveWPM(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const words = partnerLiveMessage.split(' | ').length;
+      const minutes = (Date.now() - partnerMessageStartTime) / 60000;
+      const wpm = minutes > 0 ? Math.round(words / minutes) : 0;
+      setPartnerLiveWPM(wpm);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [partnerMessageStartTime, partnerLiveMessage]);
 
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
@@ -47,8 +67,8 @@ export default function MessageTranscript({
   return (
     <div className="transcript">
       <div className="transcript-header">
-        <h3>📝 Message Transcript</h3>
-        <button 
+        <h3>📝 Dual-Lane Transcript</h3>
+        <button
           className="translation-toggle"
           onClick={() => setShowTranslation(!showTranslation)}
           title={showTranslation ? "Hide translation" : "Show translation"}
@@ -56,64 +76,101 @@ export default function MessageTranscript({
           {showTranslation ? '🔤' : '📖'}
         </button>
       </div>
-      
-      <div className="transcript-content">
-        {messages.length === 0 && !liveMessage && !partnerTyping && (
-          <p className="empty-state">Start sending Morse code...</p>
-        )}
 
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`message ${msg.from === currentUser ? 'own-message' : 'partner-message'}`}
-          >
-            <div className="message-header">
-              <span className="message-sender">{msg.from}</span>
-              <div className="message-meta">
-                {msg.wpm > 0 && !msg.isLive && (
-                  <span className="message-wpm">{msg.wpm} WPM</span>
-                )}
-                {msg.timestamp && !msg.isLive && (
-                  <span className="message-time">{formatTime(msg.timestamp)}</span>
+      <div className="dual-lane-container">
+        {/* User Lane */}
+        <div className="lane user-lane">
+          <div className="lane-header">
+            <span className="lane-title">You ({currentUser})</span>
+            <span className="lane-freq">600 Hz</span>
+          </div>
+          <div className="lane-content">
+            {messages.filter(m => m.from === currentUser).map((msg, index) => (
+              <div key={index} className="message own-message">
+                <div className="message-header">
+                  <div className="message-meta">
+                    {msg.wpm > 0 && (
+                      <span className="message-wpm">{msg.wpm} WPM</span>
+                    )}
+                    {msg.timestamp && (
+                      <span className="message-time">{formatTime(msg.timestamp)}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="message-content">{msg.content}</div>
+                {showTranslation && msg.content && (
+                  <div className="message-translation">
+                    {translateMorse(msg.content)}
+                  </div>
                 )}
               </div>
-            </div>
-            <div className="message-content">{msg.content}</div>
-            {showTranslation && msg.content && !msg.isLive && (
-              <div className="message-translation">
-                {translateMorse(msg.content)}
+            ))}
+
+            {myLiveMessage && (
+              <div className="message own-message live-message">
+                <div className="message-header">
+                  <span className="live-indicator">typing...</span>
+                  {myLiveWPM > 0 && (
+                    <span className="live-wpm-badge">{myLiveWPM} WPM</span>
+                  )}
+                </div>
+                <div className="message-content">{myLiveMessage}</div>
+                {showTranslation && myLiveMessage && (
+                  <div className="message-translation">
+                    {translateMorse(myLiveMessage)}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        ))}
+        </div>
 
-        {partnerTyping && !liveMessage && (
-          <div className="message partner-message typing-indicator">
-            <div className="message-sender">Partner is typing...</div>
-            <div className="typing-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+        {/* Partner Lane */}
+        <div className="lane partner-lane">
+          <div className="lane-header">
+            <span className="lane-title">Partner ({partnerUsername})</span>
+            <span className="lane-freq">900 Hz</span>
           </div>
-        )}
+          <div className="lane-content">
+            {messages.filter(m => m.from !== currentUser).map((msg, index) => (
+              <div key={index} className="message partner-message">
+                <div className="message-header">
+                  <div className="message-meta">
+                    {msg.wpm > 0 && (
+                      <span className="message-wpm">{msg.wpm} WPM</span>
+                    )}
+                    {msg.timestamp && (
+                      <span className="message-time">{formatTime(msg.timestamp)}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="message-content">{msg.content}</div>
+                {showTranslation && msg.content && (
+                  <div className="message-translation">
+                    {translateMorse(msg.content)}
+                  </div>
+                )}
+              </div>
+            ))}
 
-        {liveMessage && (
-          <div className="message own-message live-message">
-            <div className="message-header">
-              <span className="message-sender">{currentUser} (typing...)</span>
-              {liveWPM > 0 && (
-                <span className="live-wpm-badge">{liveWPM} WPM</span>
-              )}
-            </div>
-            <div className="message-content">{liveMessage}</div>
-            {showTranslation && liveMessage && (
-              <div className="message-translation">
-                {translateMorse(liveMessage)}
+            {partnerLiveMessage && (
+              <div className="message partner-message live-message">
+                <div className="message-header">
+                  <span className="live-indicator">typing...</span>
+                  {partnerLiveWPM > 0 && (
+                    <span className="live-wpm-badge">{partnerLiveWPM} WPM</span>
+                  )}
+                </div>
+                <div className="message-content">{partnerLiveMessage}</div>
+                {showTranslation && partnerLiveMessage && (
+                  <div className="message-translation">
+                    {translateMorse(partnerLiveMessage)}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
+        </div>
 
         <div ref={transcriptEndRef} />
       </div>
