@@ -1,22 +1,15 @@
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { classifyPress, calculateAccuracy } from './BPMTiming';
 import './MorseKey.css';
 
 const MorseKey = forwardRef(({
   onSignal,
   disabled,
   volume = 0.3,
-  dashThreshold = 300,
-  timingConfig = null,
-  settings = {},
-  adaptiveTiming = null,
-  lastPressTiming = null
+  dashThreshold = 120
 }, ref) => {
   const [isPressed, setIsPressed] = useState(false);
   const [pressProgress, setPressProgress] = useState(0);
   const [ripples, setRipples] = useState([]);
-  const [lastAccuracy, setLastAccuracy] = useState(null); // For timing feedback
-  const [showAccuracyFeedback, setShowAccuracyFeedback] = useState(false);
   const pressStartTime = useRef(null);
   const audioContext = useRef(null);
   const progressInterval = useRef(null);
@@ -98,35 +91,10 @@ const MorseKey = forwardRef(({
     if (disabled || !pressStartTime.current) return;
 
     const pressDuration = Date.now() - pressStartTime.current;
-    let isDash = pressDuration > dashThreshold;
-    let signal = isDash ? 'dash' : 'dot';
+    const isDash = pressDuration > dashThreshold;
+    const signal = isDash ? 'dash' : 'dot';
 
-    // Use tolerance windows if timing config is available
-    if (timingConfig && timingConfig.dot && timingConfig.dash) {
-      const classified = classifyPress(pressDuration, timingConfig);
-      if (classified) {
-        signal = classified;
-        isDash = signal === 'dash';
-      }
-    }
-
-    // Calculate accuracy for feedback
-    if (timingConfig) {
-      const targetDuration = isDash ? timingConfig.dashLength : timingConfig.dotLength;
-      const accuracy = calculateAccuracy(pressDuration, targetDuration);
-      setLastAccuracy({ accuracy, signal, duration: pressDuration, target: targetDuration });
-      setShowAccuracyFeedback(true);
-
-      // Hide feedback after 2 seconds
-      setTimeout(() => setShowAccuracyFeedback(false), 2000);
-    }
-
-    // Record for adaptive learning
-    if (settings.adaptiveEnabled && adaptiveTiming) {
-      adaptiveTiming.recordPress(signal, pressDuration);
-    }
-
-    onSignal(signal, pressDuration);
+    onSignal(signal);
     playBeep(isDash);
 
     setIsPressed(false);
@@ -164,47 +132,8 @@ const MorseKey = forwardRef(({
     }
   }));
 
-  // Get accuracy color
-  const getAccuracyColor = (accuracy) => {
-    if (accuracy >= 90) return '#4CAF50'; // Green - Excellent
-    if (accuracy >= 75) return '#8BC34A'; // Light Green - Good
-    if (accuracy >= 60) return '#FFC107'; // Yellow - Fair
-    if (accuracy >= 40) return '#FF9800'; // Orange - Poor
-    return '#F44336'; // Red - Very Poor
-  };
-
   return (
     <div className="morse-key-container">
-      {/* Timing Feedback Display */}
-      {showAccuracyFeedback && lastAccuracy && (
-        <div className="timing-feedback" style={{ borderColor: getAccuracyColor(lastAccuracy.accuracy) }}>
-          <div className="timing-feedback-header">
-            <span className="timing-feedback-signal">
-              {lastAccuracy.signal === 'dot' ? '·' : '−'}
-            </span>
-            <span className="timing-feedback-accuracy" style={{ color: getAccuracyColor(lastAccuracy.accuracy) }}>
-              {lastAccuracy.accuracy}%
-            </span>
-          </div>
-          <div className="timing-feedback-details">
-            <span className="timing-feedback-label">Your timing:</span>
-            <span className="timing-feedback-value">{lastAccuracy.duration}ms</span>
-            <span className="timing-feedback-label">Target:</span>
-            <span className="timing-feedback-value">{Math.round(lastAccuracy.target)}ms</span>
-          </div>
-        </div>
-      )}
-
-      {/* Adaptive Learning Stats */}
-      {settings.adaptiveEnabled && adaptiveTiming && (
-        <div className="adaptive-stats">
-          <span className="adaptive-stats-label">📊 Learning:</span>
-          <span className="adaptive-stats-value">
-            {adaptiveTiming.getSampleCount().dots} dots, {adaptiveTiming.getSampleCount().dashes} dashes
-          </span>
-        </div>
-      )}
-
       <button
         className={`morse-key ${isPressed ? 'pressed' : ''} ${disabled ? 'disabled' : ''}`}
         onMouseDown={handlePressStart}
@@ -229,20 +158,6 @@ const MorseKey = forwardRef(({
           </span>
         </div>
       </button>
-
-      {/* Target timing guide */}
-      {timingConfig && !disabled && (
-        <div className="timing-targets">
-          <div className="timing-target">
-            <span className="timing-target-symbol">·</span>
-            <span className="timing-target-value">{Math.round(timingConfig.dotLength)}ms</span>
-          </div>
-          <div className="timing-target">
-            <span className="timing-target-symbol">−</span>
-            <span className="timing-target-value">{Math.round(timingConfig.dashLength)}ms</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 });
