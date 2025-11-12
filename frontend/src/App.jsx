@@ -67,6 +67,10 @@ export default function App() {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
+  // Refs to store current handlers to avoid stale closures in event listeners
+  const handleMorseSignalRef = useRef(null);
+  const handleKeyPressRef = useRef(null);
+
   // Standalone sound function with frequency parameter (DUPLEX: different tones for user/partner)
   const playMorseSound = (isDash, frequency = userFrequency) => {
     if (!audioContextRef.current || volume === 0) return;
@@ -115,20 +119,20 @@ export default function App() {
       // Direct input: Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash
       if (e.key === 'z' || e.key === 'Z' || e.code === 'ControlLeft') {
         e.preventDefault();
-        if (!e.repeat) {
-          handleMorseSignal('dot');
+        if (!e.repeat && handleMorseSignalRef.current) {
+          handleMorseSignalRef.current('dot');
         }
       } else if (e.key === 'x' || e.key === 'X' || e.code === 'ControlRight') {
         e.preventDefault();
-        if (!e.repeat) {
-          handleMorseSignal('dash');
+        if (!e.repeat && handleMorseSignalRef.current) {
+          handleMorseSignalRef.current('dash');
         }
       }
       // Hold mode: Spacebar timing
       else if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
-        if (!e.repeat) {
-          handleKeyPress('start');
+        if (!e.repeat && handleKeyPressRef.current) {
+          handleKeyPressRef.current('start');
         }
       }
     };
@@ -139,7 +143,9 @@ export default function App() {
       // Spacebar hold timing
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
-        handleKeyPress('end');
+        if (handleKeyPressRef.current) {
+          handleKeyPressRef.current('end');
+        }
       }
     };
 
@@ -166,6 +172,9 @@ export default function App() {
       keyPressStart.current = null;
     }
   };
+
+  // Update ref so keyboard handlers always call the current version
+  handleKeyPressRef.current = handleKeyPress;
 
   // Refs for partner's message timing
   const partnerLetterSpaceTimeout = useRef(null);
@@ -421,6 +430,9 @@ export default function App() {
       }
     }, settings.submitDelay);
   };
+
+  // Update ref so keyboard handlers always call the current version
+  handleMorseSignalRef.current = handleMorseSignal;
 
   // Auto-send function (triggered after submit delay)
   const autoSendMessage = () => {
