@@ -77,13 +77,13 @@ export default function SettingsPanel({
                   <div className="setting-control">
                     <input
                       type="range"
-                      min="500"
-                      max="3000"
+                      min="1000"
+                      max="5000"
                       step="100"
-                      value={settings.submitDelay || 1500}
+                      value={settings.submitDelay || 2500}
                       onChange={(e) => handleNumericChange('submitDelay', e.target.value)}
                     />
-                    <span className="setting-value">{((settings.submitDelay || 1500) / 1000).toFixed(1)}s</span>
+                    <span className="setting-value">{((settings.submitDelay || 2500) / 1000).toFixed(1)}s</span>
                   </div>
                 </div>
               </div>
@@ -119,30 +119,6 @@ export default function SettingsPanel({
                   </label>
                 </div>
 
-                {settings.keyboardEnabled && (
-                  <>
-                    <div className="setting-item checkbox-item indented">
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={settings.twoButtonMode}
-                          onChange={(e) => handleCheckboxChange('twoButtonMode', e.target.checked)}
-                        />
-                        <span className="checkbox-label">
-                          Two-Button Mode
-                          <span className="setting-hint">Z = Dot | X = Dash | CTRL = Hold</span>
-                        </span>
-                      </label>
-                    </div>
-
-                    {!settings.twoButtonMode && (
-                      <div className="setting-info">
-                        Hold Mode: Press and hold Spacebar or CTRL to create dots/dashes based on duration
-                      </div>
-                    )}
-                  </>
-                )}
-
                 <div className="setting-item checkbox-item">
                   <label>
                     <input
@@ -155,6 +131,10 @@ export default function SettingsPanel({
                       <span className="setting-hint">Separate buttons for Dot and Dash (great for mobile)</span>
                     </span>
                   </label>
+                </div>
+
+                <div className="setting-info">
+                  <strong>Note:</strong> Input mode toggle (Z/X vs HOLD) is available in the main window when keyboard is enabled.
                 </div>
               </div>
 
