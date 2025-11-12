@@ -16,7 +16,7 @@ This guide will help you deploy Morse Me Please to your TrueNAS server and expos
 # From your local PC, run:
 rsync -avz --exclude 'node_modules' --exclude '.git' \
   /home/user/morse-omegle/ \
-  your-username@truenas-ip:/mnt/SamsungSSD_2TB/apps/morsemeplease/
+  your-username@truenas-ip:/mnt/SamsungSSD_2TB/morsemeplease/
 ```
 
 ### Option B: Using Git
@@ -25,7 +25,7 @@ rsync -avz --exclude 'node_modules' --exclude '.git' \
 ssh your-username@truenas-ip
 
 # Clone the repository
-cd /mnt/SamsungSSD_2TB/apps
+cd /mnt/SamsungSSD_2TB
 git clone YOUR_REPO_URL morsemeplease
 cd morsemeplease
 git checkout YOUR_BRANCH_NAME
@@ -38,11 +38,11 @@ cd /home/user
 tar -czf morse-omegle.tar.gz morse-omegle/
 
 # Copy to TrueNAS
-scp morse-omegle.tar.gz your-username@truenas-ip:/mnt/SamsungSSD_2TB/apps/
+scp morse-omegle.tar.gz your-username@truenas-ip:/mnt/SamsungSSD_2TB/
 
 # SSH in and extract
 ssh your-username@truenas-ip
-cd /mnt/SamsungSSD_2TB/apps
+cd /mnt/SamsungSSD_2TB
 tar -xzf morse-omegle.tar.gz
 mv morse-omegle morsemeplease
 ```
@@ -52,7 +52,7 @@ mv morse-omegle morsemeplease
 SSH into your TrueNAS server and run:
 
 ```bash
-cd /mnt/SamsungSSD_2TB/apps/morsemeplease
+cd /mnt/SamsungSSD_2TB/morsemeplease
 
 # Build the Docker image
 docker build -t morsemeplease:latest .
@@ -222,7 +222,7 @@ Open browser console and check for WebSocket errors. The app should connect via 
 ### Update the application:
 
 ```bash
-cd /mnt/SamsungSSD_2TB/apps/morsemeplease
+cd /mnt/SamsungSSD_2TB/morsemeplease
 
 # Pull latest changes (if using git)
 git pull
@@ -317,7 +317,7 @@ docker restart morsemeplease
 systemctl restart cloudflared
 
 # Update app
-cd /mnt/SamsungSSD_2TB/apps/morsemeplease && docker-compose down && docker-compose build && docker-compose up -d
+cd /mnt/SamsungSSD_2TB/morsemeplease && docker-compose down && docker-compose build && docker-compose up -d
 ```
 
 ## Support
