@@ -37,8 +37,8 @@ html, body, #root {
   background: linear-gradient(135deg, #262626 0%, #1a1a1a 100%);
   border-bottom: 2px solid #333;
   color: #e5e5e5;
-  padding: 16px 20px;
-  padding-bottom: 60px;
+  padding: 10px 16px;
+  padding-bottom: 48px;
   position: relative;
   flex-shrink: 0;
 }
@@ -46,23 +46,23 @@ html, body, #root {
 .user-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
   max-width: calc(100% - 100px);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .username {
-  padding: 6px 12px;
+  padding: 4px 10px;
   background: rgba(57, 211, 83, 0.1);
   border: 1px solid rgba(57, 211, 83, 0.3);
-  border-radius: 20px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
   font-family: 'Monaco', monospace;
   color: #39d353;
 }
@@ -70,18 +70,18 @@ html, body, #root {
 .wpm-badge {
   background: #39d353;
   color: #0a0a0a;
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10px;
   font-weight: bold;
 }
 
 .partner {
-  padding: 6px 12px;
+  padding: 4px 10px;
   background: rgba(57, 211, 83, 0.1);
   border: 1px solid rgba(57, 211, 83, 0.3);
-  border-radius: 20px;
-  font-size: 13px;
+  border-radius: 16px;
+  font-size: 12px;
   font-family: 'Monaco', monospace;
   color: #39d353;
 }
@@ -172,13 +172,13 @@ html, body, #root {
 .volume-btn,
 .settings-btn {
   position: absolute;
-  bottom: 12px;
+  bottom: 8px;
   background: #262626;
   border: 2px solid #333;
   color: #39d353;
-  font-size: 18px;
-  width: 38px;
-  height: 38px;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -190,11 +190,11 @@ html, body, #root {
 }
 
 .volume-btn {
-  right: 60px;
+  right: 50px;
 }
 
 .settings-btn {
-  right: 16px;
+  right: 12px;
 }
 
 .volume-btn:hover,
@@ -322,8 +322,8 @@ html, body, #root {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  padding: 12px 20px;
+  gap: 16px;
+  padding: 8px 16px;
   background: #0f0f0f;
   border-top: 1px solid #333;
   border-bottom: 1px solid #333;
@@ -335,22 +335,22 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .timing-icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .timing-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   font-family: 'Monaco', monospace;
   color: #39d353;
 }
 
 .timing-desc {
-  font-size: 10px;
+  font-size: 9px;
   color: #888;
   font-family: 'Monaco', monospace;
 }
@@ -363,15 +363,15 @@ html, body, #root {
 
 .keyboard-hint {
   text-align: center;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: rgba(57, 211, 83, 0.1);
   border: 1px solid rgba(57, 211, 83, 0.3);
   color: #39d353;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   font-family: 'Monaco', monospace;
-  margin: 0 20px;
-  border-radius: 8px;
+  margin: 0 16px;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 
@@ -458,26 +458,26 @@ html, body, #root {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  padding: 15px 20px;
+  gap: 10px;
+  padding: 8px 16px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  margin: 0 20px 15px;
+  border-radius: 10px;
+  margin: 0 16px 10px;
 }
 
 .toggle-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #e5e5e5;
   font-weight: 600;
   font-family: 'Monaco', monospace;
 }
 
 .mode-toggle {
-  width: 80px;
-  height: 36px;
+  width: 70px;
+  height: 30px;
   background: linear-gradient(145deg, #2c2c2c, #1a1a1a);
   border: 2px solid #444;
-  border-radius: 18px;
+  border-radius: 15px;
   position: relative;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -500,7 +500,7 @@ html, body, #root {
 }
 
 .toggle-option {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
@@ -513,7 +513,7 @@ html, body, #root {
 }
 
 .toggle-hint {
-  font-size: 11px;
+  font-size: 10px;
   color: #888;
   font-family: 'Monaco', monospace;
 }
@@ -523,16 +523,17 @@ html, body, #root {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  padding: 20px;
+  gap: 30px;
+  padding: 15px;
   flex-shrink: 0;
+  min-height: 170px;
 }
 
 .circle-button {
-  width: 180px;
-  height: 180px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  border: 7px solid;
+  border: 5px solid;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -543,7 +544,7 @@ html, body, #root {
   -webkit-tap-highlight-color: transparent;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .dot-button {
@@ -591,16 +592,16 @@ html, body, #root {
 }
 
 .circle-label {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: bold;
   color: white;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  letter-spacing: 2px;
-  margin-bottom: 8px;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
 }
 
 .circle-symbol {
-  font-size: 48px;
+  font-size: 36px;
   font-weight: bold;
   color: white;
   text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
@@ -610,11 +611,11 @@ html, body, #root {
 .live-translation {
   background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
   border: 2px solid #39d353;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin: 0 20px 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4),
-              0 0 20px rgba(57, 211, 83, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 16px 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4),
+              0 0 16px rgba(57, 211, 83, 0.2);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -630,29 +631,29 @@ html, body, #root {
 }
 
 .morse-symbols {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: bold;
   color: #39d353;
   font-family: 'Monaco', 'Courier New', monospace;
-  margin-bottom: 12px;
-  letter-spacing: 2px;
+  margin-bottom: 8px;
+  letter-spacing: 1.5px;
   word-break: break-all;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .translated-text {
-  font-size: 18px;
+  font-size: 14px;
   color: #e5e5e5;
   font-weight: 600;
   font-family: 'Monaco', 'Courier New', monospace;
-  padding-top: 12px;
+  padding-top: 8px;
   border-top: 1px solid #333;
 }
 
 /* Auto-send Progress Bar */
 .auto-send-progress-container {
-  margin-top: 12px;
-  height: 6px;
+  margin-top: 8px;
+  height: 5px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 3px;
   overflow: hidden;
