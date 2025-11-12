@@ -72,14 +72,21 @@ io.on('connection', (socket) => {
 
   // DUPLEX: Real-time morse signal relay
   socket.on('morse-signal', (data) => {
+    console.log(`📥 Server received morse-signal from ${socket.username} (${socket.id}):`, data);
     const partnerId = activePairs.get(socket.id);
+    console.log(`🔍 Looking for partner ID for ${socket.id}, found: ${partnerId}`);
+    console.log(`📋 Active pairs:`, Array.from(activePairs.entries()));
+
     if (partnerId) {
-      // Relay signal to partner in real-time
+      console.log(`📤 Relaying signal to partner ${partnerId}`);
       io.to(partnerId).emit('morse-signal', {
         signal: data.signal,
         from: socket.username,
         timestamp: data.timestamp
       });
+      console.log(`✅ Signal relayed successfully`);
+    } else {
+      console.log(`❌ No partner found for ${socket.id}`);
     }
   });
 
