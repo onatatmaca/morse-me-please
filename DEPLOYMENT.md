@@ -1,338 +1,435 @@
-# Deployment Guide for TrueNAS with Cloudflare Tunnel
+# 🚀 Deployment Guide for TrueNAS SCALE
 
-This guide will help you deploy Morse Me Please to your TrueNAS server and expose it via Cloudflare Tunnel.
+This guide will help you deploy Morse Me Please to your TrueNAS SCALE server using the Apps GUI and expose it via Cloudflare Tunnel. **No SSH required** - everything is done through the web interface!
+
+## Why This Approach?
+
+- ✅ **GUI-based**: Manage everything through TrueNAS web interface
+- ✅ **Visible Status**: See app status, logs, and health at a glance
+- ✅ **Easy Updates**: One-click redeploy when you update the image
+- ✅ **Resource Monitoring**: Track CPU, RAM, and network usage
+- ✅ **No SSH Needed**: Perfect for non-technical management
 
 ## Prerequisites
 
-- TrueNAS server with Docker support (TrueNAS SCALE recommended)
-- Cloudflare account with a domain
-- SSH access to your TrueNAS server
-- `cloudflared` installed on TrueNAS
-
-## Step 1: Transfer Files to TrueNAS
-
-### Option A: Using rsync (Recommended)
-```bash
-# From your local PC, run:
-rsync -avz --exclude 'node_modules' --exclude '.git' \
-  /home/user/morse-omegle/ \
-  your-username@truenas-ip:/mnt/SamsungSSD_2TB/morsemeplease/
-```
-
-### Option B: Using Git
-```bash
-# SSH into TrueNAS
-ssh your-username@truenas-ip
-
-# Clone the repository
-cd /mnt/SamsungSSD_2TB
-git clone YOUR_REPO_URL morsemeplease
-cd morsemeplease
-git checkout YOUR_BRANCH_NAME
-```
-
-### Option C: Using scp
-```bash
-# Create a tarball
-cd /home/user
-tar -czf morse-omegle.tar.gz morse-omegle/
-
-# Copy to TrueNAS
-scp morse-omegle.tar.gz your-username@truenas-ip:/mnt/SamsungSSD_2TB/
-
-# SSH in and extract
-ssh your-username@truenas-ip
-cd /mnt/SamsungSSD_2TB
-tar -xzf morse-omegle.tar.gz
-mv morse-omegle morsemeplease
-```
-
-## Step 2: Build and Run with Docker
-
-SSH into your TrueNAS server and run:
-
-```bash
-cd /mnt/SamsungSSD_2TB/morsemeplease
-
-# Build the Docker image
-docker build -t morsemeplease:latest .
-
-# Run the container
-docker run -d \
-  --name morsemeplease \
-  --restart unless-stopped \
-  -p 3000:3000 \
-  -e NODE_ENV=production \
-  morsemeplease:latest
-
-# Or use docker-compose
-docker-compose up -d
-```
-
-### Verify the application is running:
-```bash
-docker ps | grep morsemeplease
-docker logs morsemeplease
-curl http://localhost:3000
-```
-
-## Step 3: Set Up Cloudflare Tunnel
-
-### Install cloudflared on TrueNAS (if not already installed)
-
-```bash
-# For FreeBSD-based TrueNAS (CORE)
-pkg install cloudflared
-
-# For Debian-based TrueNAS (SCALE)
-curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-dpkg -i cloudflared.deb
-```
-
-### Authenticate with Cloudflare
-
-```bash
-cloudflared tunnel login
-```
-
-This will open a browser window. Select your domain.
-
-### Create a tunnel
-
-```bash
-# Create a new tunnel
-cloudflared tunnel create morsemeplease
-
-# This will output a Tunnel ID - save it!
-# Example output: Created tunnel morsemeplease with id: abc123-def456-ghi789
-```
-
-### Configure the tunnel
-
-Create the config file at `~/.cloudflared/config.yml`:
-
-```yaml
-tunnel: abc123-def456-ghi789  # Replace with your Tunnel ID
-credentials-file: /root/.cloudflared/abc123-def456-ghi789.json  # Replace with your Tunnel ID
-
-ingress:
-  - hostname: morsemeplease.com  # Your domain
-    service: http://localhost:3000
-  - hostname: www.morsemeplease.com  # WWW subdomain
-    service: http://localhost:3000
-  - service: http_status:404
-```
-
-### Route DNS to your tunnel
-
-```bash
-# Route apex domain
-cloudflared tunnel route dns morsemeplease morsemeplease.com
-
-# Route www subdomain
-cloudflared tunnel route dns morsemeplease www.morsemeplease.com
-```
-
-### Run the tunnel
-
-#### Option A: Run as a service (recommended)
-
-```bash
-# Install as a system service
-cloudflared service install
-
-# Start the service
-systemctl start cloudflared
-systemctl enable cloudflared
-
-# Check status
-systemctl status cloudflared
-```
-
-#### Option B: Run in Docker (alternative)
-
-Create `docker-compose-with-tunnel.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  morsemeplease:
-    build: .
-    container_name: morsemeplease
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    networks:
-      - morsemeplease-network
-
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared-morsemeplease
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run --token YOUR_TUNNEL_TOKEN
-    networks:
-      - morsemeplease-network
-    depends_on:
-      - morsemeplease
-
-networks:
-  morsemeplease-network:
-    driver: bridge
-```
-
-Get your tunnel token from Cloudflare dashboard and run:
-```bash
-docker-compose -f docker-compose-with-tunnel.yml up -d
-```
-
-## Step 4: Configure Firewall (if needed)
-
-If you're using TrueNAS firewall, you don't need to open any ports since Cloudflare Tunnel creates an outbound connection. This is one of the main benefits!
-
-## Step 5: Test Your Deployment
-
-Visit your domain: `https://morsemeplease.com` or `https://www.morsemeplease.com`
-
-### Troubleshooting
-
-#### Check application logs:
-```bash
-docker logs morsemeplease -f
-```
-
-#### Check tunnel status:
-```bash
-cloudflared tunnel info morsemeplease
-systemctl status cloudflared
-```
-
-#### Check tunnel logs:
-```bash
-journalctl -u cloudflared -f
-```
-
-#### Test WebSocket connection:
-Open browser console and check for WebSocket errors. The app should connect via WSS (secure WebSocket) automatically.
-
-## Step 6: Updates and Maintenance
-
-### Update the application:
-
-```bash
-cd /mnt/SamsungSSD_2TB/morsemeplease
-
-# Pull latest changes (if using git)
-git pull
-
-# Rebuild
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
-
-# Or manually:
-docker stop morsemeplease
-docker rm morsemeplease
-docker build -t morsemeplease:latest .
-docker run -d --name morsemeplease --restart unless-stopped -p 3000:3000 -e NODE_ENV=production morsemeplease:latest
-```
-
-### View logs:
-```bash
-docker logs morsemeplease --tail 100 -f
-```
-
-### Restart application:
-```bash
-docker restart morsemeplease
-```
-
-## Additional Configuration
-
-### Environment Variables
-
-You can add more environment variables to the docker-compose.yml:
-
-```yaml
-environment:
-  - NODE_ENV=production
-  - PORT=3000
-  - LOG_LEVEL=info
-```
-
-### Persistent Data (if needed in future)
-
-Add volumes to docker-compose.yml:
-
-```yaml
-volumes:
-  - ./data:/app/data
-  - ./logs:/app/logs
-```
-
-## Security Considerations
-
-1. **Cloudflare Tunnel** provides automatic HTTPS/TLS
-2. **WebSocket security** is handled by Cloudflare
-3. **No exposed ports** - all traffic goes through Cloudflare
-4. Consider adding **rate limiting** in Cloudflare dashboard
-5. Enable **Cloudflare WAF** for additional protection
-
-## Cloudflare Dashboard Configuration
-
-In your Cloudflare dashboard:
-
-1. Go to Zero Trust > Access > Tunnels
-2. You should see your tunnel status
-3. Configure additional settings:
-   - Enable **HTTP/2**
-   - Enable **WebSocket** support (should be on by default)
-   - Set **Connection timeout** if needed
-
-## Performance Tuning
-
-For better performance:
-
-1. Enable **Argo Smart Routing** in Cloudflare (paid feature)
-2. Use **Cloudflare's WebSocket compression**
-3. Enable **Cloudflare's Automatic Platform Optimization**
+- TrueNAS SCALE (not CORE)
+- Docker installed on your local PC (for building the image)
+- Docker Hub account (free)
+- Cloudflare account with a domain (for public access)
 
 ---
 
-## Quick Reference Commands
+## ⚙️ Step 1: Build & Push the Image
+
+You build your container on your **local PC** (since TrueNAS SCALE doesn't need Docker CLI).
+
+### On Your Local PC:
 
 ```bash
-# Check app status
-docker ps | grep morsemeplease
-docker logs morsemeplease --tail 50
+# Navigate to project directory
+cd /home/user/morse-omegle
 
-# Check tunnel status
-cloudflared tunnel info morsemeplease
-systemctl status cloudflared
+# Build the Docker image (replace 'yourdockeruser' with your Docker Hub username)
+docker build -t yourdockeruser/morsemeplease:latest .
 
-# Restart services
-docker restart morsemeplease
-systemctl restart cloudflared
+# Login to Docker Hub
+docker login
 
-# Update app
-cd /mnt/SamsungSSD_2TB/morsemeplease && docker-compose down && docker-compose build && docker-compose up -d
+# Push to Docker Hub
+docker push yourdockeruser/morsemeplease:latest
 ```
 
-## Support
+**Note**: Replace `yourdockeruser` with your actual Docker Hub username throughout this guide.
 
-If you encounter issues:
+Your app image is now online at `docker.io/yourdockeruser/morsemeplease:latest` 🎉
 
-1. Check Docker logs: `docker logs morsemeplease -f`
-2. Check tunnel logs: `journalctl -u cloudflared -f`
-3. Test local connection: `curl http://localhost:3000`
-4. Check Cloudflare tunnel dashboard for connection status
+---
 
-## Domain Setup
+## 🧩 Step 2: Open TrueNAS SCALE Apps
 
-Your domain `morsemeplease.com` should now be live and accessible via:
-- https://morsemeplease.com
-- https://www.morsemeplease.com
+1. Open your **TrueNAS SCALE web dashboard** (usually `http://your-nas-ip`)
+2. Click **Apps** in the left sidebar
+3. Click the **"Launch Docker Image"** button (top-right)
 
-Both URLs will automatically use HTTPS with Cloudflare's SSL certificate.
+A configuration wizard will open.
+
+---
+
+## 🧱 Step 3: Configure the App
+
+Fill out the form with these settings:
+
+### 📦 Container Image
+
+- **Image repository**: `yourdockeruser/morsemeplease:latest`
+- **Image tag**: `latest` (usually auto-filled)
+- **Pull policy**: `Always` (ensures you get updates)
+
+### 🏷️ Application Name
+
+- **Application Name**: `morsemeplease`
+
+### 🌐 Networking
+
+Click **"Add"** under Port Forwards:
+
+| Setting | Value |
+|---------|-------|
+| **Container Port** | `3000` |
+| **Node Port** | `3000` |
+| **Protocol** | `TCP` |
+
+This makes the app available at: `http://<your-nas-ip>:3000`
+
+### 🔧 Environment Variables
+
+Click **"Add"** under Environment Variables (add these two):
+
+| Variable | Value |
+|----------|-------|
+| `NODE_ENV` | `production` |
+| `PORT` | `3000` |
+
+### 💾 Storage (Optional but Recommended)
+
+If your app writes logs or data in the future:
+
+Click **"Add"** under Host Path Volumes:
+
+| Setting | Value |
+|---------|-------|
+| **Host Path** | `/mnt/SamsungSSD_2TB/morsemeplease/data` |
+| **Mount Path** | `/app/data` |
+
+**Note**: Make sure this directory exists on TrueNAS first, or TrueNAS will create it.
+
+### 🎛️ Resources
+
+You can leave defaults or adjust:
+
+- **CPU**: `1` (or adjust based on your needs)
+- **Memory**: `512 MB` (or adjust based on your needs)
+
+---
+
+## 🚀 Step 4: Deploy
+
+1. Review all settings
+2. Click **"Save"** at the bottom
+3. Wait for the status to change to **"Running"** ✅
+
+You'll see:
+- Green status indicator
+- Container logs in real-time
+- Resource usage graphs
+
+Your app is now live locally at: **`http://<your-truenas-ip>:3000`** 🎉
+
+### 📊 Monitoring Your App
+
+In **Apps → Installed**:
+- **Status**: Running, Stopped, Error
+- **Logs**: Click on the app → "Logs" tab (real-time)
+- **Shell**: Access container shell if needed
+- **Stats**: CPU, RAM, network usage
+
+---
+
+## ☁️ Step 5: Add Cloudflare Tunnel (Public Access)
+
+Now let's expose your app to the internet securely via Cloudflare Tunnel.
+
+### Get Your Cloudflare Tunnel Token
+
+1. Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)
+2. Navigate to **Networks → Tunnels**
+3. Click **"Create a tunnel"**
+4. Choose **"Cloudflared"**
+5. Name it: `morsemeplease-tunnel`
+6. Copy the tunnel token (looks like: `eyJhIjoiXXXX...`)
+
+### Configure the Tunnel Route
+
+In the Cloudflare dashboard, before finishing:
+
+1. **Public Hostnames** → **Add a public hostname**
+2. Configure:
+   - **Subdomain**: `*` (or leave empty for apex domain)
+   - **Domain**: Select your domain (e.g., `morsemeplease.com`)
+   - **Type**: `HTTP`
+   - **URL**: `morsemeplease:3000` (container name:port)
+
+3. Save the tunnel
+
+### Deploy Cloudflare Tunnel in TrueNAS
+
+1. Go back to **TrueNAS → Apps → Launch Docker Image**
+2. Fill in:
+
+| Setting | Value |
+|---------|-------|
+| **Image repository** | `cloudflare/cloudflared:latest` |
+| **Application Name** | `cloudflared-morsemeplease` |
+
+3. Under **Advanced Settings → Command**:
+   - Click **"Add"** under arguments
+   - Add these arguments in order:
+
+   ```
+   tunnel
+   --no-autoupdate
+   run
+   --token
+   YOUR_TUNNEL_TOKEN_HERE
+   ```
+
+   (Replace `YOUR_TUNNEL_TOKEN_HERE` with your actual token from Cloudflare)
+
+4. Under **Networking**:
+   - **Network Mode**: `bridge` (default)
+   - No port forwarding needed! (Cloudflare connects outbound)
+
+5. Click **"Save"** and wait for it to start
+
+### Verify Tunnel Connection
+
+1. Check **TrueNAS → Apps → cloudflared-morsemeplease** → Status should be **"Running"**
+2. Check **Cloudflare Dashboard → Tunnels** → Your tunnel should show **"Healthy"** 🟢
+3. Visit your domain: **`https://morsemeplease.com`** or **`https://www.morsemeplease.com`**
+
+🎉 **Your app is now publicly accessible with automatic HTTPS!**
+
+---
+
+## 🔄 Step 6: Updating Your App
+
+When you make changes to your code:
+
+### On Your Local PC:
+
+```bash
+# Rebuild and push
+cd /home/user/morse-omegle
+docker build -t yourdockeruser/morsemeplease:latest .
+docker push yourdockeruser/morsemeplease:latest
+```
+
+### In TrueNAS SCALE:
+
+1. Go to **Apps → Installed**
+2. Find **morsemeplease**
+3. Click the **⋮** (three dots) menu
+4. Click **"Edit"**
+5. Scroll down and click **"Update"** or **"Save"**
+6. TrueNAS will pull the new image and restart the container
+
+**Alternatively:**
+- Click **"Stop"** → Wait → Click **"Start"** (if pull policy is "Always")
+
+---
+
+## 📊 Management & Monitoring
+
+### View Logs
+
+1. **Apps → Installed → morsemeplease**
+2. Click **"Logs"** tab
+3. See real-time application logs
+4. Use filters and search
+
+### Check Status
+
+In the Apps dashboard you'll see:
+- 🟢 **Green**: Running healthy
+- 🟡 **Yellow**: Starting/Updating
+- 🔴 **Red**: Error/Stopped
+
+### Restart App
+
+1. **Apps → Installed → morsemeplease**
+2. Click **⋮** menu
+3. Click **"Restart"**
+
+### Stop/Start App
+
+Use the **Stop/Start** buttons to control the application without deleting it.
+
+### Delete App
+
+**Warning**: This removes the container but **not** the Docker image from the system.
+
+1. Click **⋮** menu
+2. Click **"Delete"**
+3. Confirm
+
+---
+
+## 🐛 Troubleshooting
+
+### App Won't Start
+
+1. Check **Logs** tab for error messages
+2. Verify image name is correct: `yourdockeruser/morsemeplease:latest`
+3. Verify port 3000 isn't already in use
+4. Check environment variables are set correctly
+
+### Can't Access Locally
+
+1. Verify app status is **"Running"**
+2. Try: `http://<truenas-ip>:3000`
+3. Check TrueNAS firewall settings if enabled
+4. Verify port forwarding is set to 3000:3000
+
+### Cloudflare Tunnel Not Working
+
+1. Check **cloudflared-morsemeplease** status is **"Running"**
+2. Check logs for authentication errors
+3. Verify tunnel token is correct
+4. Check Cloudflare dashboard shows tunnel as **"Healthy"**
+5. Verify DNS records are set up correctly
+6. Wait 1-2 minutes for DNS propagation
+
+### Check Connectivity
+
+From TrueNAS Shell (or via Apps → morsemeplease → Shell):
+
+```bash
+# Test if app is responding
+curl http://localhost:3000
+
+# Check if container is running
+# (Can't do this in container shell - check TrueNAS Apps dashboard instead)
+```
+
+### View Detailed Container Info
+
+1. **Apps → Installed → morsemeplease**
+2. Click **"Details"** tab
+3. See container ID, image, network, volumes, etc.
+
+---
+
+## 🔒 Security Considerations
+
+1. ✅ **Cloudflare Tunnel** provides automatic HTTPS/TLS
+2. ✅ **WebSocket security** is handled by Cloudflare
+3. ✅ **No exposed ports** - all traffic goes through Cloudflare
+4. ✅ **No port forwarding** needed on your router
+5. Consider adding **rate limiting** in Cloudflare dashboard
+6. Enable **Cloudflare WAF** (Web Application Firewall) for additional protection
+7. Enable **Cloudflare Bot Management** if you experience abuse
+
+---
+
+## ⚡ Performance Tuning
+
+### In Cloudflare Dashboard
+
+1. **Enable HTTP/2 and HTTP/3** (Settings → Network)
+2. **Enable WebSocket support** (should be on by default)
+3. **Enable Brotli compression** (Speed → Optimization)
+4. **Enable Argo Smart Routing** (Traffic → Argo - paid feature)
+5. Set **Browser Cache TTL** appropriately
+6. Enable **Auto Minify** for JS/CSS/HTML
+
+### In TrueNAS
+
+1. Increase CPU/RAM allocation if needed:
+   - **Apps → morsemeplease → Edit → Resources**
+2. Use SSD storage for container data:
+   - Already using `/mnt/SamsungSSD_2TB/morsemeplease/data`
+3. Monitor resource usage in the Apps dashboard
+
+---
+
+## 📋 Quick Reference
+
+### App URLs
+
+| Location | URL |
+|----------|-----|
+| **Local (TrueNAS)** | `http://<truenas-ip>:3000` |
+| **Public (Cloudflare)** | `https://morsemeplease.com` |
+| **Public WWW** | `https://www.morsemeplease.com` |
+
+### TrueNAS Apps Dashboard
+
+| Action | Steps |
+|--------|-------|
+| **View Logs** | Apps → morsemeplease → Logs tab |
+| **Restart** | Apps → morsemeplease → ⋮ → Restart |
+| **Update** | Apps → morsemeplease → ⋮ → Edit → Update |
+| **Stop/Start** | Apps → morsemeplease → Stop/Start button |
+| **Shell Access** | Apps → morsemeplease → Shell tab |
+| **View Stats** | Apps → morsemeplease → Details tab |
+
+### Cloudflare Dashboard
+
+| Action | Location |
+|--------|----------|
+| **Check Tunnel Status** | Zero Trust → Networks → Tunnels |
+| **View Analytics** | Analytics & Logs → Web Analytics |
+| **Configure WAF** | Security → WAF |
+| **Set up Rate Limiting** | Security → WAF → Rate limiting rules |
+
+---
+
+## 🎯 Alternative: Using Docker Compose File
+
+If you prefer to use docker-compose.yml for app configuration, you can:
+
+1. Create a dataset on TrueNAS: `/mnt/SamsungSSD_2TB/morsemeplease`
+2. Upload your `docker-compose.yml` there
+3. In TrueNAS Apps → Use **"Custom App"** instead of "Launch Docker Image"
+4. Point it to your compose file location
+
+However, the GUI method described above is simpler and provides better visibility.
+
+---
+
+## 📚 Additional Resources
+
+- [TrueNAS SCALE Apps Documentation](https://www.truenas.com/docs/scale/scaletutorials/apps/)
+- [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
+- [Docker Hub](https://hub.docker.com/) - for managing your images
+
+---
+
+## 🆘 Support
+
+### Check App Status:
+1. TrueNAS → Apps → Installed
+2. Look for 🟢 green status
+3. Click "Logs" for real-time output
+
+### Check Tunnel Status:
+1. Cloudflare Dashboard → Networks → Tunnels
+2. Look for 🟢 "Healthy" status
+
+### Test Local Connection:
+```bash
+curl http://<truenas-ip>:3000
+```
+
+### Test Public Connection:
+```bash
+curl https://morsemeplease.com
+```
+
+---
+
+## 🎉 You're Done!
+
+Your Morse Me Please app is now:
+- ✅ Deployed on TrueNAS SCALE
+- ✅ Managed via GUI
+- ✅ Monitored with real-time logs
+- ✅ Publicly accessible via Cloudflare
+- ✅ Secured with automatic HTTPS
+- ✅ Protected by Cloudflare's network
+
+Visit **https://morsemeplease.com** and start chatting in Morse code! 📡
+
+---
+
+**Questions or issues?** Check the troubleshooting section above or open an issue on GitHub.
