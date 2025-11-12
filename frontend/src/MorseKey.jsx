@@ -6,7 +6,8 @@ const MorseKey = forwardRef(({
   disabled,
   volume = 0.3,
   dashThreshold = 120,
-  onMouseStateChange = null
+  onMouseStateChange = null,
+  onPlaySound = null  // Optional custom sound function
 }, ref) => {
   const [isPressed, setIsPressed] = useState(false);
   const [pressProgress, setPressProgress] = useState(0);
@@ -101,7 +102,13 @@ const MorseKey = forwardRef(({
     const signal = isDash ? 'dash' : 'dot';
 
     onSignal(signal);
-    playBeep(isDash);
+
+    // Use custom sound function if provided, otherwise use internal
+    if (onPlaySound) {
+      onPlaySound(isDash);
+    } else {
+      playBeep(isDash);
+    }
 
     setIsPressed(false);
     setPressProgress(0);
@@ -132,8 +139,12 @@ const MorseKey = forwardRef(({
         setPressProgress(100);
       }
 
-      // Play sound
-      playBeep(isDash);
+      // Play sound - use custom function if provided
+      if (onPlaySound) {
+        onPlaySound(isDash);
+      } else {
+        playBeep(isDash);
+      }
 
       // Reset visual state
       setTimeout(() => {
@@ -143,7 +154,11 @@ const MorseKey = forwardRef(({
     },
     playSound: (isDash) => {
       // Exposed method for two-circle buttons to play sound
-      playBeep(isDash);
+      if (onPlaySound) {
+        onPlaySound(isDash);
+      } else {
+        playBeep(isDash);
+      }
     }
   }));
 
