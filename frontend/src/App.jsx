@@ -185,10 +185,7 @@ export default function App() {
 
   // Setup socket listeners - STABLE handlers that don't need constant re-registration
   useEffect(() => {
-    console.log('🔧 Setting up socket handlers');
-
     const handleConnect = () => {
-      console.log('✅ Connected to server');
       setConnected(true);
     };
 
@@ -201,7 +198,6 @@ export default function App() {
     };
 
     const handlePaired = (data) => {
-      console.log('🤝 Paired with:', data.partnerUsername);
       setPartnerUsername(data.partnerUsername);
       setStatus(`Connected with ${data.partnerUsername}! Both can send anytime.`);
       setMessages([]);
@@ -212,7 +208,6 @@ export default function App() {
     };
 
     const handleMorseSignal = (data) => {
-      console.log('📡 Received morse signal:', data);
 
       setPartnerMessageStartTime(prev => {
         if (!prev) return Date.now();
@@ -289,8 +284,6 @@ export default function App() {
     };
 
     const handleMessageComplete = (data) => {
-      console.log('📬 Received complete message from partner:', data);
-
       // Clear partner's timeouts
       if (partnerLetterSpaceTimeout.current) {
         clearTimeout(partnerLetterSpaceTimeout.current);
@@ -328,32 +321,19 @@ export default function App() {
     socket.on('morse-message-complete', handleMessageComplete);
     socket.on('partner-disconnected', handlePartnerDisconnected);
 
-    // Debug: Verify handlers are registered
-    console.log('✅ All handlers registered. Socket ID:', socket.id, 'Connected:', socket.connected);
-
-    // Test: Log when any event is received
-    const debugHandler = (eventName, ...args) => {
-      console.log(`🎯 DEBUG: Socket received event "${eventName}":`, args);
-    };
-
-    socket.onAny(debugHandler);
-
     return () => {
-      console.log('🔧 Cleaning up socket handlers');
       socket.off('connect', handleConnect);
       socket.off('waiting', handleWaiting);
       socket.off('paired', handlePaired);
       socket.off('morse-signal', handleMorseSignal);
       socket.off('morse-message-complete', handleMessageComplete);
       socket.off('partner-disconnected', handlePartnerDisconnected);
-      socket.offAny(debugHandler);
     };
   }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
 
   // Connect socket and emit username AFTER handlers are registered
   useEffect(() => {
     if (username && !socket.connected) {
-      console.log('🔌 Connecting socket and setting username:', username);
       socket.connect();
       socket.emit('set-username', username);
     }
@@ -370,8 +350,6 @@ export default function App() {
   };
 
   const handleMorseSignal = (signal) => {
-    console.log('📤 Sending morse signal:', signal);
-
     // Start timer on first signal
     if (!currentMessageStartTime) {
       setCurrentMessageStartTime(Date.now());
@@ -390,7 +368,6 @@ export default function App() {
       signal: signal,
       timestamp: Date.now()
     });
-    console.log('✉️ Emitted morse-signal to server');
 
     lastSignalTime.current = Date.now();
 
