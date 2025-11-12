@@ -14,7 +14,7 @@ export default function UsernameForm({ onSubmit, onlineUsers }) {
   return (
     <div className="username-form-container">
       <div className="username-card">
-        <h1>🎯 Morse Omegle</h1>
+        <h1>🎯 Morse Me Please</h1>
         <p className="subtitle">Connect with strangers through Morse code</p>
 
         {onlineUsers > 0 && (

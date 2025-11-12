@@ -1,17 +1,17 @@
 version: '3.8'
 
 services:
-  morse-omegle:
+  morsemeplease:
     build: .
-    container_name: morse-omegle
+    container_name: morsemeplease
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
     networks:
-      - morse-network
+      - morsemeplease-network
 
 networks:
-  morse-network:
+  morsemeplease-network:
     driver: bridge
