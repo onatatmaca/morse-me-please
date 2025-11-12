@@ -6,7 +6,6 @@ const MorseKey = forwardRef(({
   disabled,
   volume = 0.3,
   dashThreshold = 120,
-  onMouseStateChange = null,
   onPlaySound = null  // Optional custom sound function
 }, ref) => {
   const [isPressed, setIsPressed] = useState(false);
@@ -82,11 +81,6 @@ const MorseKey = forwardRef(({
     setPressProgress(0);
     addRipple();
 
-    // Notify parent that mouse is pressed
-    if (onMouseStateChange) {
-      onMouseStateChange(true);
-    }
-
     progressInterval.current = setInterval(() => {
       const elapsed = Date.now() - pressStartTime.current;
       const progress = Math.min((elapsed / dashThreshold) * 100, 100);
@@ -113,11 +107,6 @@ const MorseKey = forwardRef(({
     setIsPressed(false);
     setPressProgress(0);
     pressStartTime.current = null;
-
-    // Notify parent that mouse is released
-    if (onMouseStateChange) {
-      onMouseStateChange(false);
-    }
 
     if (progressInterval.current) {
       clearInterval(progressInterval.current);
