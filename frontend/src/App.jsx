@@ -13,8 +13,7 @@ const DEFAULT_SETTINGS = {
   submitDelay: 2500,    // Auto-send delay in ms (1000-5000ms) - More time to compose
   showLetters: true,    // Show translation while typing
   keyboardEnabled: true,
-  twoButtonMode: true,  // Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash (default ON)
-  twoCircleMode: false  // Separate dot/dash buttons for mobile
+  twoCircleMode: false  // Separate dot/dash buttons for mobile (toggle between Single/Two-Circle)
 };
 
 export default function App() {
@@ -59,33 +58,75 @@ export default function App() {
 
   const timing = calculateTiming(settings.wpm);
 
-  // Keyboard event handler
+  // Audio context for two-circle buttons
+  const audioContextRef = useRef(null);
+
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+  }, []);
+
+  // Standalone sound function for two-circle buttons
+  const playMorseSound = (isDash) => {
+    if (!audioContextRef.current || volume === 0) return;
+
+    const ctx = audioContextRef.current;
+    const now = ctx.currentTime;
+
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.value = isDash ? 380 : 620;
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 1;
+
+    const duration = isDash ? 0.25 : 0.12;
+    const attackTime = 0.01;
+    const decayTime = 0.03;
+    const sustainLevel = volume * 0.6;
+    const releaseTime = 0.08;
+
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(volume, now + attackTime);
+    gainNode.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+    gainNode.gain.setValueAtTime(sustainLevel, now + duration - releaseTime);
+    gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+  };
+
+  // Keyboard event handler - Both input methods work together
   useEffect(() => {
     if (!settings.keyboardEnabled || !isMyTurn) return;
 
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Two-button mode: Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash
-      if (settings.twoButtonMode) {
-        if (e.key === 'z' || e.key === 'Z' || e.code === 'ControlLeft') {
-          e.preventDefault();
-          if (!e.repeat) {
-            handleMorseSignal('dot');
-          }
-        } else if (e.key === 'x' || e.key === 'X' || e.code === 'ControlRight') {
-          e.preventDefault();
-          if (!e.repeat) {
-            handleMorseSignal('dash');
-          }
+      // Direct input: Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash
+      if (e.key === 'z' || e.key === 'Z' || e.code === 'ControlLeft') {
+        e.preventDefault();
+        if (!e.repeat) {
+          handleMorseSignal('dot');
         }
-      } else {
-        // Hold mode: Spacebar only
-        if (e.key === ' ' || e.code === 'Space') {
-          e.preventDefault();
-          if (!e.repeat) {
-            handleKeyPress('start');
-          }
+      } else if (e.key === 'x' || e.key === 'X' || e.code === 'ControlRight') {
+        e.preventDefault();
+        if (!e.repeat) {
+          handleMorseSignal('dash');
+        }
+      }
+      // Hold mode: Spacebar timing
+      else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        if (!e.repeat) {
+          handleKeyPress('start');
         }
       }
     };
@@ -93,11 +134,10 @@ export default function App() {
     const handleKeyUp = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      if (!settings.twoButtonMode) {
-        if (e.key === ' ' || e.code === 'Space') {
-          e.preventDefault();
-          handleKeyPress('end');
-        }
+      // Spacebar hold timing
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        handleKeyPress('end');
       }
     };
 
@@ -108,7 +148,7 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [settings.keyboardEnabled, settings.twoButtonMode, isMyTurn]);
+  }, [settings.keyboardEnabled, isMyTurn]);
 
   const keyPressStart = useRef(null);
 
@@ -278,23 +318,23 @@ export default function App() {
           return trimmed + ' | ';
         });
       }, timing.wordPause);
-
-      // Auto-send after submit delay with progress bar
-      const startTime = Date.now();
-      progressInterval.current = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min((elapsed / settings.submitDelay) * 100, 100);
-        setAutoSendProgress(progress);
-      }, 50); // Update every 50ms for smooth animation
-
-      autoSendTimeout.current = setTimeout(() => {
-        autoSendMessage();
-        setAutoSendProgress(0);
-        if (progressInterval.current) {
-          clearInterval(progressInterval.current);
-        }
-      }, settings.submitDelay);
     }
+
+    // Auto-send after submit delay with progress bar (always schedule, not just when mouse not pressed)
+    const startTime = Date.now();
+    progressInterval.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / settings.submitDelay) * 100, 100);
+      setAutoSendProgress(progress);
+    }, 50); // Update every 50ms for smooth animation
+
+    autoSendTimeout.current = setTimeout(() => {
+      autoSendMessage();
+      setAutoSendProgress(0);
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+      }
+    }, settings.submitDelay);
   };
 
   // Auto-send function (triggered after submit delay)
@@ -446,19 +486,19 @@ export default function App() {
 
       {partnerUsername ? (
         <div className="main-app-content">
-          {/* Two-Button Mode Toggle - iOS style */}
+          {/* Circle Mode Toggle - iOS style */}
           <div className="input-mode-toggle">
-            <span className="toggle-label">Input Mode:</span>
+            <span className="toggle-label">Circle Mode:</span>
             <button
-              className={`mode-toggle ${settings.twoButtonMode ? 'active' : ''}`}
-              onClick={() => setSettings({ ...settings, twoButtonMode: !settings.twoButtonMode })}
+              className={`mode-toggle ${settings.twoCircleMode ? 'active' : ''}`}
+              onClick={() => setSettings({ ...settings, twoCircleMode: !settings.twoCircleMode })}
             >
               <div className="toggle-slider">
-                <span className="toggle-option">{settings.twoButtonMode ? 'Z/X' : 'HOLD'}</span>
+                <span className="toggle-option">{settings.twoCircleMode ? 'TWO' : 'SINGLE'}</span>
               </div>
             </button>
             <span className="toggle-hint">
-              {settings.twoButtonMode ? 'Z=· | X=−' : 'Hold for −'}
+              {settings.twoCircleMode ? 'Separate Dot/Dash' : 'Hold for timing'}
             </span>
           </div>
 
@@ -477,16 +517,11 @@ export default function App() {
                 className="circle-button dot-button"
                 onMouseDown={() => {
                   handleMorseSignal('dot');
-                  // Play sound
-                  if (morseKeyRef.current) {
-                    morseKeyRef.current.playSound(false);
-                  }
+                  playMorseSound(false);
                 }}
                 onTouchStart={() => {
                   handleMorseSignal('dot');
-                  if (morseKeyRef.current) {
-                    morseKeyRef.current.playSound(false);
-                  }
+                  playMorseSound(false);
                 }}
                 disabled={!isMyTurn}
               >
@@ -497,16 +532,11 @@ export default function App() {
                 className="circle-button dash-button"
                 onMouseDown={() => {
                   handleMorseSignal('dash');
-                  // Play sound
-                  if (morseKeyRef.current) {
-                    morseKeyRef.current.playSound(true);
-                  }
+                  playMorseSound(true);
                 }}
                 onTouchStart={() => {
                   handleMorseSignal('dash');
-                  if (morseKeyRef.current) {
-                    morseKeyRef.current.playSound(true);
-                  }
+                  playMorseSound(true);
                 }}
                 disabled={!isMyTurn}
               >
@@ -547,10 +577,7 @@ export default function App() {
 
           {settings.keyboardEnabled && (
             <div className="keyboard-hint">
-              {settings.twoButtonMode
-                ? '⌨️ Z / Left CTRL = Dot (·) | X / Right CTRL = Dash (−)'
-                : '⌨️ Hold Spacebar (duration = dot/dash)'
-              }
+              ⌨️ Z / Left CTRL = Dot (·) | X / Right CTRL = Dash (−) | Hold Spacebar (duration = dot/dash)
             </div>
           )}
           

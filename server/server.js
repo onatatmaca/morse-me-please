@@ -86,14 +86,32 @@ io.on('connection', (socket) => {
     if (partnerId) {
       // Update activity timestamp
       userActivity.set(socket.id, Date.now());
-      
+
       io.to(partnerId).emit('morse-message', {
         signal,
         from: socket.username
       });
-      
+
       // Notify partner that user is typing
       io.to(partnerId).emit('partner-typing', true);
+    }
+  });
+
+  socket.on('morse-message-complete', (data) => {
+    const partnerId = activePairs.get(socket.id);
+    if (partnerId) {
+      // Update activity timestamp
+      userActivity.set(socket.id, Date.now());
+
+      // Broadcast complete message to partner
+      io.to(partnerId).emit('morse-message-complete', {
+        message: data.message,
+        from: socket.username,
+        wpm: data.wpm,
+        timestamp: data.timestamp
+      });
+
+      console.log(`📨 Message from ${socket.username}: ${data.message} (${data.wpm} WPM)`);
     }
   });
 
