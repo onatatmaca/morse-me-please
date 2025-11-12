@@ -52,16 +52,6 @@ export default function SettingsPanel({
                     />
                     <span className="setting-value">{settings.wpm || 20} WPM</span>
                   </div>
-                  <div className="wpm-markers">
-                    <span>5</span>
-                    <span>10</span>
-                    <span>15</span>
-                    <span>20</span>
-                    <span>25</span>
-                    <span>30</span>
-                    <span>35</span>
-                    <span>40</span>
-                  </div>
                 </div>
               </div>
 

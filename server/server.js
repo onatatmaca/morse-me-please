@@ -18,8 +18,17 @@ const io = new Server(httpServer, {
 let waitingUser = null;
 const activePairs = new Map();
 
+// Broadcast online user count to all connected clients
+const broadcastUserCount = () => {
+  const userCount = io.sockets.sockets.size;
+  io.emit('user-count', userCount);
+};
+
 io.on('connection', (socket) => {
   console.log('✅ User connected:', socket.id);
+
+  // Broadcast updated user count
+  broadcastUserCount();
 
   socket.on('disconnect', () => {
     console.log('❌ User disconnected:', socket.id);
@@ -34,6 +43,9 @@ io.on('connection', (socket) => {
       activePairs.delete(partnerId);
       activePairs.delete(socket.id);
     }
+
+    // Broadcast updated user count
+    broadcastUserCount();
   });
 
   socket.on('set-username', (username) => {

@@ -35,6 +35,7 @@ export default function App() {
   const [autoSendProgress, setAutoSendProgress] = useState(0); // Progress bar for auto-send (0-100)
   const [userFrequency, setUserFrequency] = useState(600); // User's tone frequency
   const [partnerFrequency, setPartnerFrequency] = useState(900); // Partner's tone frequency
+  const [onlineUsers, setOnlineUsers] = useState(0); // Total online users
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
@@ -327,12 +328,17 @@ export default function App() {
       setPartnerMessageStartTime(null);
     };
 
+    const handleUserCount = (count) => {
+      setOnlineUsers(count);
+    };
+
     socket.on('connect', handleConnect);
     socket.on('waiting', handleWaiting);
     socket.on('paired', handlePaired);
     socket.on('morse-signal', handleMorseSignal);
     socket.on('morse-message-complete', handleMessageComplete);
     socket.on('partner-disconnected', handlePartnerDisconnected);
+    socket.on('user-count', handleUserCount);
 
     return () => {
       socket.off('connect', handleConnect);
@@ -341,6 +347,7 @@ export default function App() {
       socket.off('morse-signal', handleMorseSignal);
       socket.off('morse-message-complete', handleMessageComplete);
       socket.off('partner-disconnected', handlePartnerDisconnected);
+      socket.off('user-count', handleUserCount);
     };
   }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
 
@@ -520,7 +527,7 @@ export default function App() {
   };
 
   if (!username) {
-    return <UsernameForm onSubmit={handleUsernameSubmit} />;
+    return <UsernameForm onSubmit={handleUsernameSubmit} onlineUsers={onlineUsers} />;
   }
 
   return (
@@ -533,16 +540,20 @@ export default function App() {
             {totalWPM > 0 && <span className="wpm-badge">{Math.round(totalWPM)} WPM</span>}
           </span>
           {partnerUsername && (
-            <span className="partner">Partner: {partnerUsername}</span>
+            <span className="partner">
+              Partner: {partnerUsername}
+              {onlineUsers > 0 && (
+                <span className="online-count-badge">{onlineUsers} online</span>
+              )}
+            </span>
           )}
         </div>
         <div className="status-info">
           <div className="status">
             {partnerUsername ? (
               <>
-                🔄 Duplex Mode - Both can send
                 {myLiveMessage && partnerLiveMessage && (
-                  <span className="both-typing-badge"> ⚠️ Both typing!</span>
+                  <span className="both-typing-badge">⚠️ Both typing!</span>
                 )}
               </>
             ) : (
@@ -591,18 +602,14 @@ export default function App() {
         <div className="main-app-content">
           {/* Circle Mode Toggle - iOS style */}
           <div className="input-mode-toggle">
-            <span className="toggle-label">Circle Mode:</span>
             <button
               className={`mode-toggle ${settings.twoCircleMode ? 'active' : ''}`}
               onClick={() => setSettings({ ...settings, twoCircleMode: !settings.twoCircleMode })}
             >
               <div className="toggle-slider">
-                <span className="toggle-option">{settings.twoCircleMode ? 'TWO' : 'SINGLE'}</span>
+                <span className="toggle-option">{settings.twoCircleMode ? 'Two Circles' : 'Single Circle'}</span>
               </div>
             </button>
-            <span className="toggle-hint">
-              {settings.twoCircleMode ? 'Separate Dot/Dash' : 'Hold for timing'}
-            </span>
           </div>
 
           {!settings.twoCircleMode ? (
