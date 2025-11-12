@@ -21,19 +21,21 @@ export default function App() {
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState('');
   const [partnerUsername, setPartnerUsername] = useState('');
-  const [isMyTurn, setIsMyTurn] = useState(false);
+  // DUPLEX MODE: Removed isMyTurn - both users can send anytime
   const [messages, setMessages] = useState([]);
-  const [liveMessage, setLiveMessage] = useState('');
-  const [partnerTyping, setPartnerTyping] = useState(false);
-  const [inactivityCountdown, setInactivityCountdown] = useState(0);
+  const [myLiveMessage, setMyLiveMessage] = useState(''); // User's own live message
+  const [partnerLiveMessage, setPartnerLiveMessage] = useState(''); // Partner's live message
   const [volume, setVolume] = useState(0.3);
   const [showVolumeControl, setShowVolumeControl] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
   const [currentMessageStartTime, setCurrentMessageStartTime] = useState(null);
+  const [partnerMessageStartTime, setPartnerMessageStartTime] = useState(null);
   const [totalWPM, setTotalWPM] = useState(0);
   const [autoSendProgress, setAutoSendProgress] = useState(0); // Progress bar for auto-send (0-100)
   const [isMousePressed, setIsMousePressed] = useState(false); // Track if mouse is currently pressed
+  const [userFrequency, setUserFrequency] = useState(600); // User's tone frequency
+  const [partnerFrequency, setPartnerFrequency] = useState(900); // Partner's tone frequency
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
@@ -65,8 +67,8 @@ export default function App() {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
-  // Standalone sound function for two-circle buttons
-  const playMorseSound = (isDash) => {
+  // Standalone sound function with frequency parameter (DUPLEX: different tones for user/partner)
+  const playMorseSound = (isDash, frequency = userFrequency) => {
     if (!audioContextRef.current || volume === 0) return;
 
     const ctx = audioContextRef.current;
@@ -81,7 +83,7 @@ export default function App() {
     gainNode.connect(ctx.destination);
 
     oscillator.type = 'triangle';
-    oscillator.frequency.value = isDash ? 380 : 620;
+    oscillator.frequency.value = frequency; // Use provided frequency (600Hz for user, 900Hz for partner)
 
     filter.type = 'lowpass';
     filter.frequency.value = 2000;
@@ -103,9 +105,9 @@ export default function App() {
     oscillator.stop(now + duration);
   };
 
-  // Keyboard event handler - Both input methods work together
+  // Keyboard event handler - Both input methods work together (DUPLEX: always enabled)
   useEffect(() => {
-    if (!settings.keyboardEnabled || !isMyTurn) return;
+    if (!settings.keyboardEnabled || !partnerUsername) return; // Only disable if not connected
 
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -148,7 +150,7 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [settings.keyboardEnabled, isMyTurn]);
+  }, [settings.keyboardEnabled, partnerUsername]);
 
   const keyPressStart = useRef(null);
 
@@ -165,6 +167,11 @@ export default function App() {
     }
   };
 
+  // Refs for partner's message timing
+  const partnerLetterSpaceTimeout = useRef(null);
+  const partnerWordSpaceTimeout = useRef(null);
+  const partnerAutoSendTimeout = useRef(null);
+
   useEffect(() => {
     socket.on('connect', () => {
       console.log('✅ Connected to server');
@@ -175,41 +182,83 @@ export default function App() {
       setStatus('Waiting for a partner...');
       setPartnerUsername('');
       setMessages([]);
-      setLiveMessage('');
+      setMyLiveMessage('');
+      setPartnerLiveMessage('');
     });
 
     socket.on('paired', (data) => {
       setPartnerUsername(data.partnerUsername);
-      setIsMyTurn(data.yourTurn);
-      setStatus(`Connected with ${data.partnerUsername}!`);
+      setStatus(`Connected with ${data.partnerUsername}! Both can send anytime.`);
       setMessages([]);
-      setLiveMessage('');
-      setInactivityCountdown(0);
+      setMyLiveMessage('');
+      setPartnerLiveMessage('');
       setCurrentMessageStartTime(null);
+      setPartnerMessageStartTime(null);
     });
 
-    socket.on('your-turn', () => {
-      setIsMyTurn(true);
-      setStatus('Your turn!');
-      setInactivityCountdown(0);
+    // DUPLEX: Receive real-time partner signals
+    socket.on('morse-signal', (data) => {
+      // Start timing if first signal
+      if (!partnerMessageStartTime) {
+        setPartnerMessageStartTime(Date.now());
+      }
 
-      // Finalize partner's last message when they pass turn
-      setMessages(prev => {
-        if (prev.length > 0) {
-          const lastMsg = prev[prev.length - 1];
-          if (lastMsg.isLive && lastMsg.from !== username) {
-            return [
-              ...prev.slice(0, -1),
-              { ...lastMsg, isLive: false }
-            ];
-          }
+      // Play partner's tone (different frequency)
+      playMorseSound(data.signal === 'dash', partnerFrequency);
+
+      // Add signal to partner's live message
+      const symbol = data.signal === 'dot' ? '·' : '−';
+      setPartnerLiveMessage(prev => prev + symbol);
+
+      // Clear existing partner timeouts
+      if (partnerLetterSpaceTimeout.current) {
+        clearTimeout(partnerLetterSpaceTimeout.current);
+      }
+      if (partnerWordSpaceTimeout.current) {
+        clearTimeout(partnerWordSpaceTimeout.current);
+      }
+      if (partnerAutoSendTimeout.current) {
+        clearTimeout(partnerAutoSendTimeout.current);
+      }
+
+      // Schedule partner's letter/word spacing
+      partnerLetterSpaceTimeout.current = setTimeout(() => {
+        setPartnerLiveMessage(prev => {
+          if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
+          return prev + ' ';
+        });
+      }, timing.letterPause);
+
+      partnerWordSpaceTimeout.current = setTimeout(() => {
+        setPartnerLiveMessage(prev => {
+          const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
+            ? prev.slice(0, -1)
+            : prev;
+          return trimmed + ' | ';
+        });
+      }, timing.wordPause);
+
+      // Auto-finalize partner's message after submit delay
+      partnerAutoSendTimeout.current = setTimeout(() => {
+        const finalMessage = partnerLiveMessage;
+        if (finalMessage.trim()) {
+          setMessages(prev => [...prev, {
+            from: data.from,
+            content: finalMessage,
+            timestamp: Date.now(),
+            wpm: 0 // Will be calculated if needed
+          }]);
+          setPartnerLiveMessage('');
+          setPartnerMessageStartTime(null);
         }
-        return prev;
-      });
+      }, settings.submitDelay);
     });
 
-    // Handle completed morse message from partner
+    // Handle completed morse message from partner (auto-send)
     socket.on('morse-message-complete', (data) => {
+      // Clear partner's live message and add to finalized messages
+      setPartnerLiveMessage('');
+      setPartnerMessageStartTime(null);
       setMessages(prev => [...prev, {
         from: data.from,
         content: data.message,
@@ -218,41 +267,25 @@ export default function App() {
       }]);
     });
 
-    socket.on('auto-passed', () => {
-      setStatus('Turn auto-passed due to inactivity');
-      setTimeout(() => {
-        setStatus(`Waiting for ${partnerUsername}...`);
-      }, 2000);
-    });
-
-    socket.on('inactivity-warning', (remaining) => {
-      setInactivityCountdown(remaining);
-    });
-
-    // No longer needed - we use morse-message-complete now
-
     socket.on('partner-disconnected', () => {
       setStatus('Partner disconnected');
       setPartnerUsername('');
-      setIsMyTurn(false);
       setMessages([]);
-      setLiveMessage('');
-      setPartnerTyping(false);
-      setInactivityCountdown(0);
+      setMyLiveMessage('');
+      setPartnerLiveMessage('');
       setCurrentMessageStartTime(null);
+      setPartnerMessageStartTime(null);
     });
 
     return () => {
       socket.off('connect');
       socket.off('waiting');
       socket.off('paired');
-      socket.off('your-turn');
+      socket.off('morse-signal');
       socket.off('morse-message-complete');
-      socket.off('auto-passed');
-      socket.off('inactivity-warning');
       socket.off('partner-disconnected');
     };
-  }, [username, partnerUsername, liveMessage, messages, currentMessageStartTime]);
+  }, [username, partnerUsername, myLiveMessage, partnerLiveMessage, messages, currentMessageStartTime, partnerMessageStartTime, timing, settings.submitDelay, partnerFrequency]);
 
   const calculateWPM = (morseText, startTime, endTime) => {
     if (!startTime || !endTime) return 0;
@@ -276,10 +309,15 @@ export default function App() {
     }
 
     const symbol = signal === 'dot' ? '·' : '−';
-    setLiveMessage(prev => prev + symbol);
+    setMyLiveMessage(prev => prev + symbol);
+
+    // DUPLEX: Send signal to partner in real-time
+    socket.emit('morse-signal', {
+      signal: signal,
+      timestamp: Date.now()
+    });
 
     lastSignalTime.current = Date.now();
-    setInactivityCountdown(0);
 
     // Clear existing timeouts
     if (letterSpaceTimeout.current) {
@@ -303,7 +341,7 @@ export default function App() {
     if (!isMousePressed) {
       // Letter space
       letterSpaceTimeout.current = setTimeout(() => {
-        setLiveMessage(prev => {
+        setMyLiveMessage(prev => {
           if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
           return prev + ' ';
         });
@@ -311,7 +349,7 @@ export default function App() {
 
       // Word boundary
       wordSpaceTimeout.current = setTimeout(() => {
-        setLiveMessage(prev => {
+        setMyLiveMessage(prev => {
           const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
             ? prev.slice(0, -1)
             : prev;
@@ -339,14 +377,14 @@ export default function App() {
 
   // Auto-send function (triggered after submit delay)
   const autoSendMessage = () => {
-    if (!liveMessage.trim()) return;
+    if (!myLiveMessage.trim()) return;
 
     const endTime = Date.now();
-    const wpm = calculateWPM(liveMessage, currentMessageStartTime, endTime);
+    const wpm = calculateWPM(myLiveMessage, currentMessageStartTime, endTime);
 
     // Send to partner
     socket.emit('morse-message-complete', {
-      message: liveMessage,
+      message: myLiveMessage,
       wpm: wpm,
       timestamp: endTime
     });
@@ -354,7 +392,7 @@ export default function App() {
     // Add to own messages
     setMessages(prev => [...prev, {
       from: username,
-      content: liveMessage,
+      content: myLiveMessage,
       timestamp: endTime,
       wpm: wpm
     }]);
@@ -366,31 +404,20 @@ export default function App() {
     });
 
     // Clear live message
-    setLiveMessage('');
+    setMyLiveMessage('');
     setCurrentMessageStartTime(null);
-  };
-
-  const handlePassTurn = () => {
-    if (letterSpaceTimeout.current) {
-      clearTimeout(letterSpaceTimeout.current);
-    }
-    if (wordSpaceTimeout.current) {
-      clearTimeout(wordSpaceTimeout.current);
-    }
-    
-    socket.emit('pass-turn');
   };
 
   const handleDisconnect = () => {
     socket.emit('disconnect-partner');
     setPartnerUsername('');
-    setIsMyTurn(false);
     setStatus('Disconnected');
     setMessages([]);
-    setLiveMessage('');
-    setInactivityCountdown(0);
+    setMyLiveMessage('');
+    setPartnerLiveMessage('');
     setTotalWPM(0);
     setCurrentMessageStartTime(null);
+    setPartnerMessageStartTime(null);
   };
 
   const handleFindNew = () => {
@@ -400,14 +427,15 @@ export default function App() {
     if (wordSpaceTimeout.current) {
       clearTimeout(wordSpaceTimeout.current);
     }
-    
+
     socket.emit('find-new-partner');
     setStatus('Finding new partner...');
     setMessages([]);
-    setLiveMessage('');
-    setInactivityCountdown(0);
+    setMyLiveMessage('');
+    setPartnerLiveMessage('');
     setTotalWPM(0);
     setCurrentMessageStartTime(null);
+    setPartnerMessageStartTime(null);
   };
 
   const handleUsernameSubmit = (name) => {
@@ -435,18 +463,18 @@ export default function App() {
         </div>
         <div className="status-info">
           <div className="status">
-            {isMyTurn ? (
+            {partnerUsername ? (
               <>
-                ⏳ Your Turn
-                {inactivityCountdown > 0 && (
-                  <span className="warning-badge"> {inactivityCountdown}s</span>
+                🔄 Duplex Mode - Both can send
+                {myLiveMessage && partnerLiveMessage && (
+                  <span className="both-typing-badge"> ⚠️ Both typing!</span>
                 )}
               </>
             ) : (
-              `Waiting for ${partnerUsername || '...'}...`
+              status
             )}
           </div>
-          
+
           <div className="connection-status">
             <span className={`connection-dot ${connected ? 'connected' : 'disconnected'}`}></span>
             {connected ? 'Connected' : 'Disconnected'}
@@ -506,7 +534,7 @@ export default function App() {
             <MorseKey
               ref={morseKeyRef}
               onSignal={handleMorseSignal}
-              disabled={!isMyTurn}
+              disabled={false}
               volume={volume}
               dashThreshold={timing.dashThreshold}
               onMouseStateChange={setIsMousePressed}
@@ -517,13 +545,13 @@ export default function App() {
                 className="circle-button dot-button"
                 onMouseDown={() => {
                   handleMorseSignal('dot');
-                  playMorseSound(false);
+                  playMorseSound(false, userFrequency);
                 }}
                 onTouchStart={() => {
                   handleMorseSignal('dot');
-                  playMorseSound(false);
+                  playMorseSound(false, userFrequency);
                 }}
-                disabled={!isMyTurn}
+                disabled={false}
               >
                 <span className="circle-label">DOT</span>
                 <span className="circle-symbol">·</span>
@@ -532,13 +560,13 @@ export default function App() {
                 className="circle-button dash-button"
                 onMouseDown={() => {
                   handleMorseSignal('dash');
-                  playMorseSound(true);
+                  playMorseSound(true, userFrequency);
                 }}
                 onTouchStart={() => {
                   handleMorseSignal('dash');
-                  playMorseSound(true);
+                  playMorseSound(true, userFrequency);
                 }}
-                disabled={!isMyTurn}
+                disabled={false}
               >
                 <span className="circle-label">DASH</span>
                 <span className="circle-symbol">−</span>
@@ -546,11 +574,11 @@ export default function App() {
             </div>
           )}
 
-          {settings.showLetters && liveMessage && (
+          {settings.showLetters && myLiveMessage && (
             <div className="live-translation">
-              <div className="morse-symbols">{liveMessage}</div>
+              <div className="morse-symbols">{myLiveMessage}</div>
               <div className="translated-text">
-                {translateMorse(liveMessage)}
+                {translateMorse(myLiveMessage)}
               </div>
               {/* Auto-send progress bar */}
               {autoSendProgress > 0 && (
@@ -582,19 +610,18 @@ export default function App() {
           )}
           
           <ControlPanel
-            onPassTurn={handlePassTurn}
             onDisconnect={handleDisconnect}
             onFindNew={handleFindNew}
-            disabled={!isMyTurn}
-            inactivityCountdown={inactivityCountdown}
           />
 
           <MessageTranscript
             messages={messages}
-            liveMessage={liveMessage}
+            myLiveMessage={myLiveMessage}
+            partnerLiveMessage={partnerLiveMessage}
             currentUser={username}
-            partnerTyping={partnerTyping}
+            partnerUsername={partnerUsername}
             currentMessageStartTime={currentMessageStartTime}
+            partnerMessageStartTime={partnerMessageStartTime}
           />
         </div>
       ) : (

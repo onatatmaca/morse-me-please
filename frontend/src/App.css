@@ -113,6 +113,17 @@ html, body, #root {
   animation: pulse 1s ease-in-out infinite;
 }
 
+.both-typing-badge {
+  background: #ff9500;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  font-family: 'Monaco', monospace;
+  animation: pulse 1s ease-in-out infinite;
+}
+
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
