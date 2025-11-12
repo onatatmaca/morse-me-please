@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  morse-omegle:
+    build: .
+    container_name: morse-omegle
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - morse-network
+
+networks:
+  morse-network:
+    driver: bridge

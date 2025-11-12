@@ -3,15 +3,25 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
+const isDev = process.env.NODE_ENV !== 'production';
+
+// CORS configuration
 app.use(cors());
+
+// Serve static files in production
+if (!isDev) {
+  app.use(express.static(path.join(__dirname, 'public')));
+}
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
+    origin: isDev ? "http://localhost:5173" : "*",
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -159,7 +169,15 @@ io.on('connection', (socket) => {
 
 // DUPLEX MODE: No inactivity checking needed - both users can send anytime
 
-const PORT = 3000;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+// Catch-all route to serve index.html in production
+if (!isDev) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+}
+
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  console.log(`📡 Environment: ${isDev ? 'development' : 'production'}`);
 });
