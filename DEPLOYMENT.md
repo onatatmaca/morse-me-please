@@ -1,6 +1,6 @@
 # Deployment Guide for TrueNAS with Cloudflare Tunnel
 
-This guide will help you deploy Morse Omegle to your TrueNAS server and expose it via Cloudflare Tunnel.
+This guide will help you deploy Morse Me Please to your TrueNAS server and expose it via Cloudflare Tunnel.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ This guide will help you deploy Morse Omegle to your TrueNAS server and expose i
 # From your local PC, run:
 rsync -avz --exclude 'node_modules' --exclude '.git' \
   /home/user/morse-omegle/ \
-  your-username@truenas-ip:/mnt/tank/apps/morse-omegle/
+  your-username@truenas-ip:/mnt/SamsungSSD_2TB/apps/morsemeplease/
 ```
 
 ### Option B: Using Git
@@ -25,10 +25,10 @@ rsync -avz --exclude 'node_modules' --exclude '.git' \
 ssh your-username@truenas-ip
 
 # Clone the repository
-cd /mnt/tank/apps
-git clone YOUR_REPO_URL morse-omegle
-cd morse-omegle
-git checkout claude/morse-bpm-timing-system-011CV2y9wBWKKt32FJRETR4L
+cd /mnt/SamsungSSD_2TB/apps
+git clone YOUR_REPO_URL morsemeplease
+cd morsemeplease
+git checkout YOUR_BRANCH_NAME
 ```
 
 ### Option C: Using scp
@@ -38,12 +38,13 @@ cd /home/user
 tar -czf morse-omegle.tar.gz morse-omegle/
 
 # Copy to TrueNAS
-scp morse-omegle.tar.gz your-username@truenas-ip:/mnt/tank/apps/
+scp morse-omegle.tar.gz your-username@truenas-ip:/mnt/SamsungSSD_2TB/apps/
 
 # SSH in and extract
 ssh your-username@truenas-ip
-cd /mnt/tank/apps
+cd /mnt/SamsungSSD_2TB/apps
 tar -xzf morse-omegle.tar.gz
+mv morse-omegle morsemeplease
 ```
 
 ## Step 2: Build and Run with Docker
@@ -51,18 +52,18 @@ tar -xzf morse-omegle.tar.gz
 SSH into your TrueNAS server and run:
 
 ```bash
-cd /mnt/tank/apps/morse-omegle
+cd /mnt/SamsungSSD_2TB/apps/morsemeplease
 
 # Build the Docker image
-docker build -t morse-omegle:latest .
+docker build -t morsemeplease:latest .
 
 # Run the container
 docker run -d \
-  --name morse-omegle \
+  --name morsemeplease \
   --restart unless-stopped \
   -p 3000:3000 \
   -e NODE_ENV=production \
-  morse-omegle:latest
+  morsemeplease:latest
 
 # Or use docker-compose
 docker-compose up -d
@@ -70,8 +71,8 @@ docker-compose up -d
 
 ### Verify the application is running:
 ```bash
-docker ps | grep morse-omegle
-docker logs morse-omegle
+docker ps | grep morsemeplease
+docker logs morsemeplease
 curl http://localhost:3000
 ```
 
@@ -100,10 +101,10 @@ This will open a browser window. Select your domain.
 
 ```bash
 # Create a new tunnel
-cloudflared tunnel create morse-omegle
+cloudflared tunnel create morsemeplease
 
 # This will output a Tunnel ID - save it!
-# Example output: Created tunnel morse-omegle with id: abc123-def456-ghi789
+# Example output: Created tunnel morsemeplease with id: abc123-def456-ghi789
 ```
 
 ### Configure the tunnel
@@ -115,7 +116,9 @@ tunnel: abc123-def456-ghi789  # Replace with your Tunnel ID
 credentials-file: /root/.cloudflared/abc123-def456-ghi789.json  # Replace with your Tunnel ID
 
 ingress:
-  - hostname: morse.yourdomain.com  # Replace with your desired subdomain
+  - hostname: morsemeplease.com  # Your domain
+    service: http://localhost:3000
+  - hostname: www.morsemeplease.com  # WWW subdomain
     service: http://localhost:3000
   - service: http_status:404
 ```
@@ -123,7 +126,11 @@ ingress:
 ### Route DNS to your tunnel
 
 ```bash
-cloudflared tunnel route dns morse-omegle morse.yourdomain.com
+# Route apex domain
+cloudflared tunnel route dns morsemeplease morsemeplease.com
+
+# Route www subdomain
+cloudflared tunnel route dns morsemeplease www.morsemeplease.com
 ```
 
 ### Run the tunnel
@@ -150,29 +157,29 @@ Create `docker-compose-with-tunnel.yml`:
 version: '3.8'
 
 services:
-  morse-omegle:
+  morsemeplease:
     build: .
-    container_name: morse-omegle
+    container_name: morsemeplease
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
     networks:
-      - morse-network
+      - morsemeplease-network
 
   cloudflared:
     image: cloudflare/cloudflared:latest
-    container_name: cloudflared-morse
+    container_name: cloudflared-morsemeplease
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token YOUR_TUNNEL_TOKEN
     networks:
-      - morse-network
+      - morsemeplease-network
     depends_on:
-      - morse-omegle
+      - morsemeplease
 
 networks:
-  morse-network:
+  morsemeplease-network:
     driver: bridge
 ```
 
@@ -187,18 +194,18 @@ If you're using TrueNAS firewall, you don't need to open any ports since Cloudfl
 
 ## Step 5: Test Your Deployment
 
-Visit your domain: `https://morse.yourdomain.com`
+Visit your domain: `https://morsemeplease.com` or `https://www.morsemeplease.com`
 
 ### Troubleshooting
 
 #### Check application logs:
 ```bash
-docker logs morse-omegle -f
+docker logs morsemeplease -f
 ```
 
 #### Check tunnel status:
 ```bash
-cloudflared tunnel info morse-omegle
+cloudflared tunnel info morsemeplease
 systemctl status cloudflared
 ```
 
@@ -215,7 +222,7 @@ Open browser console and check for WebSocket errors. The app should connect via 
 ### Update the application:
 
 ```bash
-cd /mnt/tank/apps/morse-omegle
+cd /mnt/SamsungSSD_2TB/apps/morsemeplease
 
 # Pull latest changes (if using git)
 git pull
@@ -226,20 +233,20 @@ docker-compose build --no-cache
 docker-compose up -d
 
 # Or manually:
-docker stop morse-omegle
-docker rm morse-omegle
-docker build -t morse-omegle:latest .
-docker run -d --name morse-omegle --restart unless-stopped -p 3000:3000 -e NODE_ENV=production morse-omegle:latest
+docker stop morsemeplease
+docker rm morsemeplease
+docker build -t morsemeplease:latest .
+docker run -d --name morsemeplease --restart unless-stopped -p 3000:3000 -e NODE_ENV=production morsemeplease:latest
 ```
 
 ### View logs:
 ```bash
-docker logs morse-omegle --tail 100 -f
+docker logs morsemeplease --tail 100 -f
 ```
 
 ### Restart application:
 ```bash
-docker restart morse-omegle
+docker restart morsemeplease
 ```
 
 ## Additional Configuration
@@ -298,26 +305,34 @@ For better performance:
 
 ```bash
 # Check app status
-docker ps | grep morse-omegle
-docker logs morse-omegle --tail 50
+docker ps | grep morsemeplease
+docker logs morsemeplease --tail 50
 
 # Check tunnel status
-cloudflared tunnel info morse-omegle
+cloudflared tunnel info morsemeplease
 systemctl status cloudflared
 
 # Restart services
-docker restart morse-omegle
+docker restart morsemeplease
 systemctl restart cloudflared
 
 # Update app
-cd /mnt/tank/apps/morse-omegle && docker-compose down && docker-compose build && docker-compose up -d
+cd /mnt/SamsungSSD_2TB/apps/morsemeplease && docker-compose down && docker-compose build && docker-compose up -d
 ```
 
 ## Support
 
 If you encounter issues:
 
-1. Check Docker logs: `docker logs morse-omegle -f`
+1. Check Docker logs: `docker logs morsemeplease -f`
 2. Check tunnel logs: `journalctl -u cloudflared -f`
 3. Test local connection: `curl http://localhost:3000`
 4. Check Cloudflare tunnel dashboard for connection status
+
+## Domain Setup
+
+Your domain `morsemeplease.com` should now be live and accessible via:
+- https://morsemeplease.com
+- https://www.morsemeplease.com
+
+Both URLs will automatically use HTTPS with Cloudflare's SSL certificate.

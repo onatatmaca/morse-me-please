@@ -1,4 +1,4 @@
-# Multi-stage build for Morse Omegle
+# Multi-stage build for Morse Me Please
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend

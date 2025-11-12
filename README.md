@@ -1,6 +1,8 @@
-# 🎯 Morse Omegle
+# 🎯 Morse Me Please
 
 A real-time Morse code communication app that connects strangers for duplex (two-way simultaneous) Morse code conversations.
+
+**Live at: [www.morsemeplease.com](https://www.morsemeplease.com)**
 
 ## Features
 
@@ -48,8 +50,8 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete instructions.
 
 ```bash
 # Using Docker
-docker build -t morse-omegle:latest .
-docker run -d --name morse-omegle -p 3000:3000 -e NODE_ENV=production morse-omegle:latest
+docker build -t morsemeplease:latest .
+docker run -d --name morsemeplease -p 3000:3000 -e NODE_ENV=production morsemeplease:latest
 
 # Or using docker-compose
 docker-compose up -d
