@@ -328,6 +328,16 @@ export default function App() {
     socket.on('morse-message-complete', handleMessageComplete);
     socket.on('partner-disconnected', handlePartnerDisconnected);
 
+    // Debug: Verify handlers are registered
+    console.log('✅ All handlers registered. Socket ID:', socket.id, 'Connected:', socket.connected);
+
+    // Test: Log when any event is received
+    const debugHandler = (eventName, ...args) => {
+      console.log(`🎯 DEBUG: Socket received event "${eventName}":`, args);
+    };
+
+    socket.onAny(debugHandler);
+
     return () => {
       console.log('🔧 Cleaning up socket handlers');
       socket.off('connect', handleConnect);
@@ -336,8 +346,18 @@ export default function App() {
       socket.off('morse-signal', handleMorseSignal);
       socket.off('morse-message-complete', handleMessageComplete);
       socket.off('partner-disconnected', handlePartnerDisconnected);
+      socket.offAny(debugHandler);
     };
   }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
+
+  // Connect socket and emit username AFTER handlers are registered
+  useEffect(() => {
+    if (username && !socket.connected) {
+      console.log('🔌 Connecting socket and setting username:', username);
+      socket.connect();
+      socket.emit('set-username', username);
+    }
+  }, [username]); // Run when username changes
 
   const calculateWPM = (morseText, startTime, endTime) => {
     if (!startTime || !endTime) return 0;
@@ -490,8 +510,7 @@ export default function App() {
 
   const handleUsernameSubmit = (name) => {
     setUsername(name);
-    socket.connect();
-    socket.emit('set-username', name);
+    // Don't connect here - let useEffect handle it after handlers are registered
   };
 
   if (!username) {
