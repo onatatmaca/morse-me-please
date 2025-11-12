@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import socket from './socket';
 import UsernameForm from './UsernameForm';
 import MorseKey from './MorseKey';
@@ -57,7 +57,8 @@ export default function App() {
     };
   };
 
-  const timing = calculateTiming(settings.wpm);
+  // Memoize timing so it only changes when WPM changes
+  const timing = useMemo(() => calculateTiming(settings.wpm), [settings.wpm]);
 
   // Audio context for two-circle buttons
   const audioContextRef = useRef(null);
@@ -170,40 +171,37 @@ export default function App() {
   const partnerLetterSpaceTimeout = useRef(null);
   const partnerWordSpaceTimeout = useRef(null);
 
-  // Refs for current state values (to avoid socket handler re-registration)
-  const partnerMessageStartTimeRef = useRef(null);
+  // Refs for values needed in socket handlers (to avoid re-registering handlers constantly)
+  const volumeRef = useRef(volume);
   const timingRef = useRef(timing);
   const submitDelayRef = useRef(settings.submitDelay);
-  const partnerFrequencyRef = useRef(partnerFrequency);
 
   // Update refs when values change
   useEffect(() => {
+    volumeRef.current = volume;
     timingRef.current = timing;
-  }, [timing]);
-
-  useEffect(() => {
     submitDelayRef.current = settings.submitDelay;
-  }, [settings.submitDelay]);
+  }, [volume, timing, settings.submitDelay]);
 
+  // Setup socket listeners - STABLE handlers that don't need constant re-registration
   useEffect(() => {
-    partnerFrequencyRef.current = partnerFrequency;
-  }, [partnerFrequency]);
+    console.log('🔧 Setting up socket handlers');
 
-  useEffect(() => {
-    socket.on('connect', () => {
+    const handleConnect = () => {
       console.log('✅ Connected to server');
       setConnected(true);
-    });
+    };
 
-    socket.on('waiting', () => {
+    const handleWaiting = () => {
       setStatus('Waiting for a partner...');
       setPartnerUsername('');
       setMessages([]);
       setMyLiveMessage('');
       setPartnerLiveMessage('');
-    });
+    };
 
-    socket.on('paired', (data) => {
+    const handlePaired = (data) => {
+      console.log('🤝 Paired with:', data.partnerUsername);
       setPartnerUsername(data.partnerUsername);
       setStatus(`Connected with ${data.partnerUsername}! Both can send anytime.`);
       setMessages([]);
@@ -211,26 +209,59 @@ export default function App() {
       setPartnerLiveMessage('');
       setCurrentMessageStartTime(null);
       setPartnerMessageStartTime(null);
-      partnerMessageStartTimeRef.current = null;
-    });
+    };
 
-    // DUPLEX: Receive real-time partner signals
-    socket.on('morse-signal', (data) => {
-      // Start timing if first signal (use ref for immediate access)
-      if (!partnerMessageStartTimeRef.current) {
-        const now = Date.now();
-        partnerMessageStartTimeRef.current = now;
-        setPartnerMessageStartTime(now);
+    const handleMorseSignal = (data) => {
+      console.log('📡 Received morse signal:', data);
+
+      setPartnerMessageStartTime(prev => {
+        if (!prev) return Date.now();
+        return prev;
+      });
+
+      // Play partner's tone at 900 Hz - inline audio to avoid closure issues
+      const isDash = data.signal === 'dash';
+      const vol = volumeRef.current;
+      if (audioContextRef.current && vol > 0) {
+        const ctx = audioContextRef.current;
+        const now = ctx.currentTime;
+
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.type = 'triangle';
+        oscillator.frequency.value = 900; // Partner frequency
+
+        filter.type = 'lowpass';
+        filter.frequency.value = 2000;
+        filter.Q.value = 1;
+
+        const duration = isDash ? 0.25 : 0.12;
+        const attackTime = 0.01;
+        const decayTime = 0.03;
+        const sustainLevel = vol * 0.6;
+        const releaseTime = 0.08;
+
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(vol, now + attackTime);
+        gainNode.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+        gainNode.gain.setValueAtTime(sustainLevel, now + duration - releaseTime);
+        gainNode.gain.linearRampToValueAtTime(0, now + duration);
+
+        oscillator.start(now);
+        oscillator.stop(now + duration);
       }
-
-      // Play partner's tone (different frequency)
-      playMorseSound(data.signal === 'dash', partnerFrequencyRef.current);
 
       // Add signal to partner's live message
       const symbol = data.signal === 'dot' ? '·' : '−';
       setPartnerLiveMessage(prev => prev + symbol);
 
-      // Clear existing partner timeouts (only letter/word spacing, NOT auto-send)
+      // Clear existing partner timeouts
       if (partnerLetterSpaceTimeout.current) {
         clearTimeout(partnerLetterSpaceTimeout.current);
       }
@@ -238,9 +269,8 @@ export default function App() {
         clearTimeout(partnerWordSpaceTimeout.current);
       }
 
-      // Schedule partner's letter/word spacing using current timing values
+      // Schedule partner's letter/word spacing using ref values
       const currentTiming = timingRef.current;
-
       partnerLetterSpaceTimeout.current = setTimeout(() => {
         setPartnerLiveMessage(prev => {
           if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
@@ -256,13 +286,9 @@ export default function App() {
           return trimmed + ' | ';
         });
       }, currentTiming.wordPause);
+    };
 
-      // NOTE: We do NOT auto-finalize partner's message locally
-      // Partner will send morse-message-complete when they're done
-    });
-
-    // Handle completed morse message from partner (auto-send)
-    socket.on('morse-message-complete', (data) => {
+    const handleMessageComplete = (data) => {
       console.log('📬 Received complete message from partner:', data);
 
       // Clear partner's timeouts
@@ -276,7 +302,6 @@ export default function App() {
       // Clear partner's live message and add to finalized messages
       setPartnerLiveMessage('');
       setPartnerMessageStartTime(null);
-      partnerMessageStartTimeRef.current = null;
 
       setMessages(prev => [...prev, {
         from: data.from,
@@ -284,9 +309,9 @@ export default function App() {
         timestamp: data.timestamp,
         wpm: data.wpm
       }]);
-    });
+    };
 
-    socket.on('partner-disconnected', () => {
+    const handlePartnerDisconnected = () => {
       setStatus('Partner disconnected');
       setPartnerUsername('');
       setMessages([]);
@@ -294,18 +319,25 @@ export default function App() {
       setPartnerLiveMessage('');
       setCurrentMessageStartTime(null);
       setPartnerMessageStartTime(null);
-      partnerMessageStartTimeRef.current = null;
-    });
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('waiting', handleWaiting);
+    socket.on('paired', handlePaired);
+    socket.on('morse-signal', handleMorseSignal);
+    socket.on('morse-message-complete', handleMessageComplete);
+    socket.on('partner-disconnected', handlePartnerDisconnected);
 
     return () => {
-      socket.off('connect');
-      socket.off('waiting');
-      socket.off('paired');
-      socket.off('morse-signal');
-      socket.off('morse-message-complete');
-      socket.off('partner-disconnected');
+      console.log('🔧 Cleaning up socket handlers');
+      socket.off('connect', handleConnect);
+      socket.off('waiting', handleWaiting);
+      socket.off('paired', handlePaired);
+      socket.off('morse-signal', handleMorseSignal);
+      socket.off('morse-message-complete', handleMessageComplete);
+      socket.off('partner-disconnected', handlePartnerDisconnected);
     };
-  }, []); // Empty dependency array - socket handlers set up once
+  }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
 
   const calculateWPM = (morseText, startTime, endTime) => {
     if (!startTime || !endTime) return 0;
@@ -318,6 +350,8 @@ export default function App() {
   };
 
   const handleMorseSignal = (signal) => {
+    console.log('📤 Sending morse signal:', signal);
+
     // Start timer on first signal
     if (!currentMessageStartTime) {
       setCurrentMessageStartTime(Date.now());
@@ -336,6 +370,7 @@ export default function App() {
       signal: signal,
       timestamp: Date.now()
     });
+    console.log('✉️ Emitted morse-signal to server');
 
     lastSignalTime.current = Date.now();
 
