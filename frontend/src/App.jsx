@@ -33,7 +33,6 @@ export default function App() {
   const [partnerMessageStartTime, setPartnerMessageStartTime] = useState(null);
   const [totalWPM, setTotalWPM] = useState(0);
   const [autoSendProgress, setAutoSendProgress] = useState(0); // Progress bar for auto-send (0-100)
-  const [isMousePressed, setIsMousePressed] = useState(false); // Track if mouse is currently pressed
   const [userFrequency, setUserFrequency] = useState(600); // User's tone frequency
   const [partnerFrequency, setPartnerFrequency] = useState(900); // Partner's tone frequency
 
@@ -171,6 +170,25 @@ export default function App() {
   const partnerLetterSpaceTimeout = useRef(null);
   const partnerWordSpaceTimeout = useRef(null);
 
+  // Refs for current state values (to avoid socket handler re-registration)
+  const partnerMessageStartTimeRef = useRef(null);
+  const timingRef = useRef(timing);
+  const submitDelayRef = useRef(settings.submitDelay);
+  const partnerFrequencyRef = useRef(partnerFrequency);
+
+  // Update refs when values change
+  useEffect(() => {
+    timingRef.current = timing;
+  }, [timing]);
+
+  useEffect(() => {
+    submitDelayRef.current = settings.submitDelay;
+  }, [settings.submitDelay]);
+
+  useEffect(() => {
+    partnerFrequencyRef.current = partnerFrequency;
+  }, [partnerFrequency]);
+
   useEffect(() => {
     socket.on('connect', () => {
       console.log('✅ Connected to server');
@@ -193,17 +211,20 @@ export default function App() {
       setPartnerLiveMessage('');
       setCurrentMessageStartTime(null);
       setPartnerMessageStartTime(null);
+      partnerMessageStartTimeRef.current = null;
     });
 
     // DUPLEX: Receive real-time partner signals
     socket.on('morse-signal', (data) => {
-      // Start timing if first signal
-      if (!partnerMessageStartTime) {
-        setPartnerMessageStartTime(Date.now());
+      // Start timing if first signal (use ref for immediate access)
+      if (!partnerMessageStartTimeRef.current) {
+        const now = Date.now();
+        partnerMessageStartTimeRef.current = now;
+        setPartnerMessageStartTime(now);
       }
 
       // Play partner's tone (different frequency)
-      playMorseSound(data.signal === 'dash', partnerFrequency);
+      playMorseSound(data.signal === 'dash', partnerFrequencyRef.current);
 
       // Add signal to partner's live message
       const symbol = data.signal === 'dot' ? '·' : '−';
@@ -217,13 +238,15 @@ export default function App() {
         clearTimeout(partnerWordSpaceTimeout.current);
       }
 
-      // Schedule partner's letter/word spacing
+      // Schedule partner's letter/word spacing using current timing values
+      const currentTiming = timingRef.current;
+
       partnerLetterSpaceTimeout.current = setTimeout(() => {
         setPartnerLiveMessage(prev => {
           if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
           return prev + ' ';
         });
-      }, timing.letterPause);
+      }, currentTiming.letterPause);
 
       partnerWordSpaceTimeout.current = setTimeout(() => {
         setPartnerLiveMessage(prev => {
@@ -232,7 +255,7 @@ export default function App() {
             : prev;
           return trimmed + ' | ';
         });
-      }, timing.wordPause);
+      }, currentTiming.wordPause);
 
       // NOTE: We do NOT auto-finalize partner's message locally
       // Partner will send morse-message-complete when they're done
@@ -240,6 +263,8 @@ export default function App() {
 
     // Handle completed morse message from partner (auto-send)
     socket.on('morse-message-complete', (data) => {
+      console.log('📬 Received complete message from partner:', data);
+
       // Clear partner's timeouts
       if (partnerLetterSpaceTimeout.current) {
         clearTimeout(partnerLetterSpaceTimeout.current);
@@ -251,6 +276,8 @@ export default function App() {
       // Clear partner's live message and add to finalized messages
       setPartnerLiveMessage('');
       setPartnerMessageStartTime(null);
+      partnerMessageStartTimeRef.current = null;
+
       setMessages(prev => [...prev, {
         from: data.from,
         content: data.message,
@@ -267,6 +294,7 @@ export default function App() {
       setPartnerLiveMessage('');
       setCurrentMessageStartTime(null);
       setPartnerMessageStartTime(null);
+      partnerMessageStartTimeRef.current = null;
     });
 
     return () => {
@@ -277,7 +305,7 @@ export default function App() {
       socket.off('morse-message-complete');
       socket.off('partner-disconnected');
     };
-  }, [username, partnerUsername, myLiveMessage, partnerLiveMessage, messages, currentMessageStartTime, partnerMessageStartTime, timing, settings.submitDelay, partnerFrequency]);
+  }, []); // Empty dependency array - socket handlers set up once
 
   const calculateWPM = (morseText, startTime, endTime) => {
     if (!startTime || !endTime) return 0;
@@ -328,29 +356,24 @@ export default function App() {
     // Reset progress bar
     setAutoSendProgress(0);
 
-    // Only schedule letter/word spacing if mouse is NOT currently pressed
-    // This prevents the issue where holding the mouse button triggers spacing too early
-    if (!isMousePressed) {
-      // Letter space
-      letterSpaceTimeout.current = setTimeout(() => {
-        setMyLiveMessage(prev => {
-          if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
-          return prev + ' ';
-        });
-      }, timing.letterPause);
+    // Schedule letter/word spacing (always schedule - timeouts are cleared on next signal)
+    letterSpaceTimeout.current = setTimeout(() => {
+      setMyLiveMessage(prev => {
+        if (prev.endsWith(' ') || prev.endsWith(' | ')) return prev;
+        return prev + ' ';
+      });
+    }, timing.letterPause);
 
-      // Word boundary
-      wordSpaceTimeout.current = setTimeout(() => {
-        setMyLiveMessage(prev => {
-          const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
-            ? prev.slice(0, -1)
-            : prev;
-          return trimmed + ' | ';
-        });
-      }, timing.wordPause);
-    }
+    wordSpaceTimeout.current = setTimeout(() => {
+      setMyLiveMessage(prev => {
+        const trimmed = prev.endsWith(' ') && !prev.endsWith(' | ')
+          ? prev.slice(0, -1)
+          : prev;
+        return trimmed + ' | ';
+      });
+    }, timing.wordPause);
 
-    // Auto-send after submit delay with progress bar (always schedule, not just when mouse not pressed)
+    // Auto-send after submit delay with progress bar
     const startTime = Date.now();
     progressInterval.current = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -529,7 +552,6 @@ export default function App() {
               disabled={false}
               volume={volume}
               dashThreshold={timing.dashThreshold}
-              onMouseStateChange={setIsMousePressed}
               onPlaySound={(isDash) => playMorseSound(isDash, userFrequency)}
             />
           ) : (
