@@ -188,3 +188,110 @@
 .helper-content::-webkit-scrollbar-thumb:hover {
   background: #39d353;
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .morse-helper {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .helper-toggle {
+    padding: 8px 14px;
+    font-size: 11px;
+    border-radius: 20px;
+  }
+
+  .helper-icon {
+    font-size: 14px;
+  }
+
+  .helper-text {
+    font-size: 11px;
+  }
+
+  .helper-panel {
+    bottom: 60px;
+    left: 12px;
+    width: calc(100vw - 24px);
+    max-height: 400px;
+  }
+
+  .helper-header h3 {
+    font-size: 13px;
+  }
+
+  .helper-content {
+    padding: 14px;
+  }
+
+  .timing-info {
+    font-size: 11px;
+    padding: 10px;
+  }
+
+  .timing-info strong {
+    font-size: 12px;
+  }
+
+  .morse-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+  }
+
+  .morse-item {
+    padding: 8px;
+  }
+
+  .morse-letter {
+    font-size: 16px;
+  }
+
+  .morse-code {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .morse-helper {
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .helper-toggle {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+
+  .helper-icon {
+    font-size: 12px;
+  }
+
+  .helper-text {
+    display: none; /* Hide text on very small screens, just show icon */
+  }
+
+  .helper-panel {
+    bottom: 50px;
+    left: 10px;
+    width: calc(100vw - 20px);
+    max-height: 350px;
+  }
+
+  .morse-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+
+  .morse-item {
+    padding: 6px;
+  }
+
+  .morse-letter {
+    font-size: 14px;
+  }
+
+  .morse-code {
+    font-size: 11px;
+  }
+}
