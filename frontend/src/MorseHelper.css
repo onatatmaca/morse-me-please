@@ -192,28 +192,28 @@
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .morse-helper {
-    bottom: 12px;
-    left: 12px;
+    bottom: 8px;
+    left: 8px;
   }
 
   .helper-toggle {
-    padding: 8px 14px;
-    font-size: 11px;
-    border-radius: 20px;
+    padding: 6px 10px;
+    font-size: 9px;
+    border-radius: 16px;
   }
 
   .helper-icon {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .helper-text {
-    font-size: 11px;
+    font-size: 9px;
   }
 
   .helper-panel {
-    bottom: 60px;
-    left: 12px;
-    width: calc(100vw - 24px);
+    bottom: 50px;
+    left: 8px;
+    width: calc(100vw - 16px);
     max-height: 400px;
   }
 
@@ -254,27 +254,33 @@
 
 @media (max-width: 480px) {
   .morse-helper {
-    bottom: 10px;
-    left: 10px;
+    bottom: 6px;
+    left: 6px;
   }
 
   .helper-toggle {
-    padding: 6px 12px;
-    font-size: 10px;
+    padding: 4px 8px;
+    font-size: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .helper-icon {
-    font-size: 12px;
+    font-size: 16px;
   }
 
   .helper-text {
-    display: none; /* Hide text on very small screens, just show icon */
+    display: none;
   }
 
   .helper-panel {
-    bottom: 50px;
-    left: 10px;
-    width: calc(100vw - 20px);
+    bottom: 45px;
+    left: 6px;
+    width: calc(100vw - 12px);
     max-height: 350px;
   }
 
