@@ -44,6 +44,7 @@ export default function App() {
   const morseKeyRef = useRef(null);
   const autoSendTimeout = useRef(null); // Auto-send after submit delay
   const progressInterval = useRef(null); // Progress bar animation interval
+  const isTouchDevice = useRef(false); // Track if we're using touch to prevent double events
 
   // Calculate timing from WPM (simple formula)
   const calculateTiming = (wpm) => {
@@ -451,6 +452,24 @@ export default function App() {
   // Update ref so keyboard handlers always call the current version
   handleMorseSignalRef.current = handleMorseSignal;
 
+  // Handler for two-circle buttons that prevents double-firing
+  const handleCircleButtonPress = (signal, e) => {
+    // If this is a touch event, mark that we're using touch and prevent mouse events
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+      isTouchDevice.current = true;
+    }
+    // If this is a mouse event and we recently had a touch event, ignore it
+    else if (e.type === 'mousedown') {
+      if (isTouchDevice.current) {
+        return; // Ignore mouse event after touch
+      }
+    }
+
+    handleMorseSignal(signal);
+    playMorseSound(signal === 'dash', userFrequency);
+  };
+
   // Auto-send function (triggered after submit delay)
   const autoSendMessage = () => {
     // Read from refs to avoid stale closure values
@@ -632,13 +651,10 @@ export default function App() {
                 className="circle-button dot-button"
                 onMouseDown={(e) => {
                   if (e.button !== 0) return; // Only left click
-                  handleMorseSignal('dot');
-                  playMorseSound(false, userFrequency);
+                  handleCircleButtonPress('dot', e);
                 }}
                 onTouchStart={(e) => {
-                  e.preventDefault(); // Prevent mouse events from firing
-                  handleMorseSignal('dot');
-                  playMorseSound(false, userFrequency);
+                  handleCircleButtonPress('dot', e);
                 }}
                 disabled={false}
               >
@@ -649,13 +665,10 @@ export default function App() {
                 className="circle-button dash-button"
                 onMouseDown={(e) => {
                   if (e.button !== 0) return; // Only left click
-                  handleMorseSignal('dash');
-                  playMorseSound(true, userFrequency);
+                  handleCircleButtonPress('dash', e);
                 }}
                 onTouchStart={(e) => {
-                  e.preventDefault(); // Prevent mouse events from firing
-                  handleMorseSignal('dash');
-                  playMorseSound(true, userFrequency);
+                  handleCircleButtonPress('dash', e);
                 }}
                 disabled={false}
               >

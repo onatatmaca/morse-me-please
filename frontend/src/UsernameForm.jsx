@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './UsernameForm.css';
+import { VERSION } from './version';
 
 export default function UsernameForm({ onSubmit, onlineUsers }) {
   const [username, setUsername] = useState('');
@@ -35,6 +36,10 @@ export default function UsernameForm({ onSubmit, onlineUsers }) {
           />
           <button type="submit">Connect</button>
         </form>
+
+        <div className="version-badge">
+          Build {VERSION}
+        </div>
       </div>
     </div>
   );
