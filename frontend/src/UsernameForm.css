@@ -88,3 +88,15 @@
     opacity: 0.5;
   }
 }
+
+.version-badge {
+  margin-top: 20px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-size: 10px;
+  color: #666;
+  font-family: 'Monaco', monospace;
+  font-weight: 600;
+}
