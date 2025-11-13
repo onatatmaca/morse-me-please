@@ -19,11 +19,12 @@ app.use((req, res, next) => {
   // Content-Security-Policy (CSP)
   res.setHeader('Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline'; " +
-    "style-src 'self' 'unsafe-inline'; " +
+    "script-src 'self' 'unsafe-inline' https://cdnjs.buymeacoffee.com; " +
+    "style-src 'self' 'unsafe-inline' https://cdnjs.buymeacoffee.com; " +
     "img-src 'self' data: https:; " +
-    "connect-src 'self' wss: ws:; " +
+    "connect-src 'self' wss: ws: https://cdnjs.buymeacoffee.com; " +
     "font-src 'self' data:; " +
+    "frame-src https://www.buymeacoffee.com; " +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self'"
