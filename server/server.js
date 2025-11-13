@@ -8,6 +8,56 @@ const path = require('path');
 const app = express();
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Security headers middleware
+app.use((req, res, next) => {
+  // Remove X-Powered-By header
+  res.removeHeader('X-Powered-By');
+
+  // Strict-Transport-Security (HSTS)
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
+  // Content-Security-Policy (CSP)
+  res.setHeader('Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline'; " +
+    "style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' wss: ws:; " +
+    "font-src 'self' data:; " +
+    "frame-ancestors 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self'"
+  );
+
+  // X-Frame-Options
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+
+  // X-Content-Type-Options
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  // Referrer-Policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Permissions-Policy
+  res.setHeader('Permissions-Policy',
+    'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+  );
+
+  // Cross-Origin-Embedder-Policy
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+
+  // Cross-Origin-Opener-Policy
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+
+  // Cross-Origin-Resource-Policy
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+
+  next();
+});
+
+// Disable X-Powered-By at app level
+app.disable('x-powered-by');
+
 // CORS configuration
 app.use(cors());
 
