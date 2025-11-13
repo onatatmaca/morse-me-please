@@ -43,15 +43,6 @@ app.use((req, res, next) => {
     'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
   );
 
-  // Cross-Origin-Embedder-Policy
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-
-  // Cross-Origin-Opener-Policy
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-
-  // Cross-Origin-Resource-Policy
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-
   next();
 });
 
