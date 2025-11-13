@@ -25,8 +25,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [myLiveMessage, setMyLiveMessage] = useState(''); // User's own live message
   const [partnerLiveMessage, setPartnerLiveMessage] = useState(''); // Partner's live message
-  const [userVolume, setUserVolume] = useState(0.3); // Volume for user's own morse sounds
-  const [partnerVolume, setPartnerVolume] = useState(0.3); // Volume for partner's morse sounds
+  const [volume, setVolume] = useState(0.3);
   const [showVolumeControl, setShowVolumeControl] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
@@ -80,10 +79,7 @@ export default function App() {
 
   // Standalone sound function with frequency parameter (DUPLEX: different tones for user/partner)
   const playMorseSound = (isDash, frequency = userFrequency) => {
-    // Determine which volume to use based on frequency (600Hz = user, 900Hz = partner)
-    const vol = frequency === userFrequency ? userVolume : partnerVolume;
-
-    if (!audioContextRef.current || vol === 0) return;
+    if (!audioContextRef.current || volume === 0) return;
 
     const ctx = audioContextRef.current;
     const now = ctx.currentTime;
@@ -106,11 +102,11 @@ export default function App() {
     const duration = isDash ? 0.25 : 0.12;
     const attackTime = 0.01;
     const decayTime = 0.03;
-    const sustainLevel = vol * 0.6;
+    const sustainLevel = volume * 0.6;
     const releaseTime = 0.08;
 
     gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(vol, now + attackTime);
+    gainNode.gain.linearRampToValueAtTime(volume, now + attackTime);
     gainNode.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
     gainNode.gain.setValueAtTime(sustainLevel, now + duration - releaseTime);
     gainNode.gain.linearRampToValueAtTime(0, now + duration);
@@ -191,16 +187,16 @@ export default function App() {
   const partnerWordSpaceTimeout = useRef(null);
 
   // Refs for values needed in socket handlers (to avoid re-registering handlers constantly)
-  const partnerVolumeRef = useRef(partnerVolume);
+  const volumeRef = useRef(volume);
   const timingRef = useRef(timing);
   const submitDelayRef = useRef(settings.submitDelay);
 
   // Update refs when values change
   useEffect(() => {
-    partnerVolumeRef.current = partnerVolume;
+    volumeRef.current = volume;
     timingRef.current = timing;
     submitDelayRef.current = settings.submitDelay;
-  }, [partnerVolume, timing, settings.submitDelay]);
+  }, [volume, timing, settings.submitDelay]);
 
   // Setup socket listeners - STABLE handlers that don't need constant re-registration
   useEffect(() => {
@@ -235,7 +231,7 @@ export default function App() {
 
       // Play partner's tone at 900 Hz - inline audio to avoid closure issues
       const isDash = data.signal === 'dash';
-      const vol = partnerVolumeRef.current;
+      const vol = volumeRef.current;
       if (audioContextRef.current && vol > 0) {
         const ctx = audioContextRef.current;
         const now = ctx.currentTime;
@@ -595,52 +591,33 @@ export default function App() {
           </div>
         </div>
         
-        <button
+        <button 
           className="volume-btn"
           onClick={() => setShowVolumeControl(!showVolumeControl)}
           title="Volume control"
         >
-          {userVolume === 0 && partnerVolume === 0 ? '🔇' : (userVolume < 0.5 && partnerVolume < 0.5) ? '🔉' : '🔊'}
+          {volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
         </button>
 
-        <button
+        <button 
           className="settings-btn"
           onClick={() => setShowSettings(true)}
           title="Settings"
         >
           ⚙️
         </button>
-
+        
         {showVolumeControl && (
           <div className="volume-control">
-            <div className="volume-slider-group">
-              <label className="volume-label">You (600 Hz)</label>
-              <div className="volume-slider-container">
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={userVolume}
-                  onChange={(e) => setUserVolume(parseFloat(e.target.value))}
-                />
-                <span className="volume-percentage">{Math.round(userVolume * 100)}%</span>
-              </div>
-            </div>
-            <div className="volume-slider-group">
-              <label className="volume-label">Partner (900 Hz)</label>
-              <div className="volume-slider-container">
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={partnerVolume}
-                  onChange={(e) => setPartnerVolume(parseFloat(e.target.value))}
-                />
-                <span className="volume-percentage">{Math.round(partnerVolume * 100)}%</span>
-              </div>
-            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={volume}
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+            />
+            <span>{Math.round(volume * 100)}%</span>
           </div>
         )}
       </div>
@@ -756,7 +733,7 @@ export default function App() {
         <div className="main-content">
           <h2>⏳ {status}</h2>
           <p className="waiting-hint">Open another tab or share with a friend to connect!</p>
-          {(status === 'Partner disconnected' || status === 'Disconnected') && (
+          {status === 'Partner disconnected' && (
             <button className="find-partner-btn" onClick={handleFindNew}>
               🔄 Find New Partner
             </button>
