@@ -441,8 +441,8 @@ html, body, #root {
   }
 
   .status-bar {
-    padding: 8px 12px;
-    padding-bottom: 42px;
+    padding: 6px 10px;
+    padding-bottom: 36px;
   }
 
   .user-info {
@@ -535,39 +535,40 @@ html, body, #root {
 
   /* Make input mode toggle smaller */
   .input-mode-toggle {
-    padding: 4px 12px;
-    margin: 0 12px 6px;
+    padding: 2px 12px;
+    margin: 0 12px 4px;
   }
 
   .mode-toggle {
-    width: 120px;
-    height: 30px;
+    width: 100px;
+    height: 26px;
+    border-radius: 13px;
   }
 
   .toggle-option {
-    font-size: 10px;
+    font-size: 9px;
   }
 
-  /* Make morse circles smaller on mobile */
+  /* Make morse circles smaller on mobile (15% reduction) */
   .two-circle-container {
-    gap: 16px;
-    padding: 10px;
-    min-height: 140px;
+    gap: 14px;
+    padding: 8px;
+    min-height: 120px;
   }
 
   .circle-button {
-    width: 110px;
-    height: 110px;
-    border-width: 4px;
+    width: 94px;
+    height: 94px;
+    border-width: 3px;
   }
 
   .circle-label {
-    font-size: 11px;
-    margin-bottom: 4px;
+    font-size: 10px;
+    margin-bottom: 3px;
   }
 
   .circle-symbol {
-    font-size: 30px;
+    font-size: 26px;
   }
 
   /* Make live translation more compact */
@@ -596,8 +597,8 @@ html, body, #root {
 
 @media (max-width: 480px) {
   .status-bar {
-    padding: 6px 10px;
-    padding-bottom: 40px;
+    padding: 5px 8px;
+    padding-bottom: 34px;
   }
 
   .main-content h2 {
@@ -628,23 +629,23 @@ html, body, #root {
   }
 
   .two-circle-container {
-    gap: 12px;
-    padding: 8px;
-    min-height: 120px;
+    gap: 10px;
+    padding: 6px;
+    min-height: 100px;
   }
 
   .circle-button {
-    width: 100px;
-    height: 100px;
+    width: 85px;
+    height: 85px;
     border-width: 3px;
   }
 
   .circle-label {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .circle-symbol {
-    font-size: 26px;
+    font-size: 22px;
   }
 }
 

@@ -630,11 +630,13 @@ export default function App() {
             <div className="two-circle-container">
               <button
                 className="circle-button dot-button"
-                onMouseDown={() => {
+                onMouseDown={(e) => {
+                  if (e.button !== 0) return; // Only left click
                   handleMorseSignal('dot');
                   playMorseSound(false, userFrequency);
                 }}
-                onTouchStart={() => {
+                onTouchStart={(e) => {
+                  e.preventDefault(); // Prevent mouse events from firing
                   handleMorseSignal('dot');
                   playMorseSound(false, userFrequency);
                 }}
@@ -645,11 +647,13 @@ export default function App() {
               </button>
               <button
                 className="circle-button dash-button"
-                onMouseDown={() => {
+                onMouseDown={(e) => {
+                  if (e.button !== 0) return; // Only left click
                   handleMorseSignal('dash');
                   playMorseSound(true, userFrequency);
                 }}
-                onTouchStart={() => {
+                onTouchStart={(e) => {
+                  e.preventDefault(); // Prevent mouse events from firing
                   handleMorseSignal('dash');
                   playMorseSound(true, userFrequency);
                 }}
