@@ -17,57 +17,44 @@ export default function MorseHelper() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <>
-      <div className="morse-helper">
-        <button
-          className="helper-toggle"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <span className="helper-icon">📖</span>
-          <span className="helper-text">{isOpen ? 'Hide' : 'Morse'} Reference</span>
-        </button>
+    <div className="morse-helper">
+      <button
+        className="helper-toggle"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="helper-icon">📖</span>
+        <span className="helper-text">{isOpen ? 'Hide' : 'Morse'} Reference</span>
+      </button>
 
-        {isOpen && (
-          <div className="helper-panel">
-            <div className="helper-header">
-              <h3>Morse Code Reference</h3>
-              <button className="close-btn" onClick={() => setIsOpen(false)}>✕</button>
+      {isOpen && (
+        <div className="helper-panel">
+          <div className="helper-header">
+            <h3>Morse Code Reference</h3>
+            <button className="close-btn" onClick={() => setIsOpen(false)}>✕</button>
+          </div>
+
+          <div className="helper-content">
+            <div className="timing-info">
+              <p><strong>How to use:</strong></p>
+              <p>• Tap/release quickly for dot (·)</p>
+              <p>• Hold longer for dash (−)</p>
+              <p>• Pause creates letter space</p>
+              <p>• Longer pause (|) creates word space</p>
+              <p>• Customize timing in Settings ⚙️</p>
             </div>
 
-            <div className="helper-content">
-              <div className="timing-info">
-                <p><strong>How to use:</strong></p>
-                <p>• Tap/release quickly for dot (·)</p>
-                <p>• Hold longer for dash (−)</p>
-                <p>• Pause creates letter space</p>
-                <p>• Longer pause (|) creates word space</p>
-                <p>• Customize timing in Settings ⚙️</p>
-              </div>
-
-              <div className="morse-grid">
-                {Object.entries(MORSE_CODE).map(([letter, code]) => (
-                  <div key={letter} className="morse-item">
-                    <span className="morse-letter">{letter}</span>
-                    <span className="morse-code">{code}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="morse-grid">
+              {Object.entries(MORSE_CODE).map(([letter, code]) => (
+                <div key={letter} className="morse-item">
+                  <span className="morse-letter">{letter}</span>
+                  <span className="morse-code">{code}</span>
+                </div>
+              ))}
             </div>
           </div>
-        )}
-      </div>
-
-      <a
-        href="https://www.buymeacoffee.com/yourusername"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="buy-me-coffee-btn"
-        title="Support this project"
-      >
-        <span className="coffee-icon">☕</span>
-        <span className="coffee-text">Buy me a coffee</span>
-      </a>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 

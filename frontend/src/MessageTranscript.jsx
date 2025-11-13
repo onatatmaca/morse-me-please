@@ -15,9 +15,10 @@ export default function MessageTranscript({
   const [showTranslation, setShowTranslation] = useState(false);
   const [partnerLiveWPM, setPartnerLiveWPM] = useState(0);
 
+  // Only auto-scroll for partner messages and finalized messages, not for user's own typing
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, myLiveMessage, partnerLiveMessage]);
+  }, [messages, partnerLiveMessage]); // Removed myLiveMessage from dependencies
 
   // Calculate partner's live WPM while typing
   useEffect(() => {
