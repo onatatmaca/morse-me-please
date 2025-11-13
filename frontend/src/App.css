@@ -266,11 +266,31 @@ html, body, #root {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
   animation: slideUp 0.2s ease;
   z-index: 100;
   backdrop-filter: blur(10px);
+  min-width: 200px;
+}
+
+.volume-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.volume-label {
+  color: #39d353;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Monaco', monospace;
+}
+
+.volume-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 @keyframes slideUp {
@@ -330,12 +350,12 @@ html, body, #root {
   border-radius: 3px;
 }
 
-.volume-control span {
+.volume-percentage {
   color: #39d353;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   font-family: 'Monaco', monospace;
-  min-width: 40px;
+  min-width: 35px;
   text-align: right;
 }
 
