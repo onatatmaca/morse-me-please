@@ -197,17 +197,17 @@
   }
 
   .helper-toggle {
-    padding: 6px 10px;
-    font-size: 9px;
-    border-radius: 16px;
+    padding: 5px 8px;
+    font-size: 10px;
+    border-radius: 14px;
   }
 
   .helper-icon {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .helper-text {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .helper-panel {
@@ -259,26 +259,21 @@
   }
 
   .helper-toggle {
-    padding: 4px 8px;
-    font-size: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 3px 6px;
+    font-size: 10px;
+    border-radius: 12px;
   }
 
   .helper-icon {
-    font-size: 16px;
+    font-size: 12px;
   }
 
   .helper-text {
-    display: none;
+    font-size: 9px;
   }
 
   .helper-panel {
-    bottom: 45px;
+    bottom: 40px;
     left: 6px;
     width: calc(100vw - 12px);
     max-height: 350px;

@@ -441,58 +441,72 @@ html, body, #root {
   }
 
   .status-bar {
-    padding: 6px 10px;
-    padding-bottom: 36px;
+    padding: 4px 8px;
+    padding-bottom: 30px;
   }
 
   .user-info {
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     max-width: 100%;
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .username, .partner {
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 10px;
+    padding: 2px 6px;
   }
 
   .wpm-badge {
-    font-size: 9px;
-    padding: 1px 4px;
+    font-size: 8px;
+    padding: 1px 3px;
   }
 
   .status-info {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 2px;
+  }
+
+  .status {
+    font-size: 10px;
   }
 
   .right-status-group {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
 
   .online-count-indicator,
   .connection-status {
-    font-size: 10px;
+    font-size: 9px;
+  }
+
+  .online-dot-small {
+    width: 5px;
+    height: 5px;
+  }
+
+  .connection-dot {
+    width: 6px;
+    height: 6px;
   }
 
   .volume-btn {
-    right: 42px;
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    bottom: 6px;
+    right: 36px;
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    bottom: 4px;
   }
 
   .settings-btn {
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    bottom: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    bottom: 4px;
   }
 
   .volume-control {
@@ -597,8 +611,36 @@ html, body, #root {
 
 @media (max-width: 480px) {
   .status-bar {
-    padding: 5px 8px;
-    padding-bottom: 34px;
+    padding: 3px 6px;
+    padding-bottom: 28px;
+  }
+
+  .user-info {
+    gap: 1px;
+  }
+
+  .username, .partner {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  .status {
+    font-size: 9px;
+  }
+
+  .online-count-indicator,
+  .connection-status {
+    font-size: 8px;
+  }
+
+  .online-dot-small {
+    width: 4px;
+    height: 4px;
+  }
+
+  .connection-dot {
+    width: 5px;
+    height: 5px;
   }
 
   .main-content h2 {
@@ -722,6 +764,7 @@ html, body, #root {
   align-items: center;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   position: relative;
   overflow: hidden;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);

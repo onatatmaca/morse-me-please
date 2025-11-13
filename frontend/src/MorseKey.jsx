@@ -74,8 +74,14 @@ const MorseKey = forwardRef(({
     }, 800);
   };
 
-  const handlePressStart = () => {
+  const handlePressStart = (e) => {
     if (disabled) return;
+
+    // Prevent mouse events from firing after touch events
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+    }
+
     setIsPressed(true);
     pressStartTime.current = Date.now();
     setPressProgress(0);
@@ -88,8 +94,13 @@ const MorseKey = forwardRef(({
     }, 10);
   };
 
-  const handlePressEnd = () => {
+  const handlePressEnd = (e) => {
     if (disabled || !pressStartTime.current) return;
+
+    // Prevent mouse events from firing after touch events
+    if (e.type === 'touchend') {
+      e.preventDefault();
+    }
 
     const pressDuration = Date.now() - pressStartTime.current;
     const isDash = pressDuration > dashThreshold;
