@@ -259,6 +259,11 @@
 @media (max-width: 768px) {
   .transcript {
     margin: 5px 10px 10px 10px;
+    max-height: 40vh; /* Limit chat height so page doesn't grow infinitely */
+  }
+
+  .chat-container {
+    max-height: calc(40vh - 60px); /* Account for header */
   }
 
   .message-bubble {
@@ -273,5 +278,15 @@
 
   .message-translation {
     font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .transcript {
+    max-height: 35vh; /* Even more compact on small screens */
+  }
+
+  .chat-container {
+    max-height: calc(35vh - 50px);
   }
 }
