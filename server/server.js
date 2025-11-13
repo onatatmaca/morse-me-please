@@ -22,9 +22,9 @@ app.use((req, res, next) => {
     "script-src 'self' 'unsafe-inline' https://cdnjs.buymeacoffee.com; " +
     "style-src 'self' 'unsafe-inline' https://cdnjs.buymeacoffee.com; " +
     "img-src 'self' data: https:; " +
-    "connect-src 'self' wss: ws: https://cdnjs.buymeacoffee.com; " +
+    "connect-src 'self' wss: ws: https://cdnjs.buymeacoffee.com https://buymeacoffee.com; " +
     "font-src 'self' data:; " +
-    "frame-src https://www.buymeacoffee.com; " +
+    "frame-src https://www.buymeacoffee.com https://buymeacoffee.com; " +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self'"
@@ -39,9 +39,9 @@ app.use((req, res, next) => {
   // Referrer-Policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  // Permissions-Policy
+  // Permissions-Policy - Allow payment for Buy Me A Coffee widget
   res.setHeader('Permissions-Policy',
-    'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+    'geolocation=(), microphone=(), camera=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
   );
 
   next();
