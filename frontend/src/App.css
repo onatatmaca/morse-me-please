@@ -850,6 +850,7 @@ html, body, #root {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4),
               0 0 16px rgba(57, 211, 83, 0.2);
   animation: slideIn 0.3s ease-out;
+  min-height: 80px; /* Stable height to prevent fidgeting */
 }
 
 @keyframes slideIn {
@@ -887,6 +888,7 @@ html, body, #root {
 .auto-send-progress-container {
   margin-top: 8px;
   height: 5px;
+  min-height: 5px; /* Always maintain space to prevent layout shift */
   background: rgba(0, 0, 0, 0.3);
   border-radius: 3px;
   overflow: hidden;

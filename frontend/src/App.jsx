@@ -684,12 +684,13 @@ export default function App() {
               <div className="translated-text">
                 {translateMorse(myLiveMessage)}
               </div>
-              {/* Auto-send progress bar */}
-              {autoSendProgress > 0 && (
-                <div className="auto-send-progress-container">
-                  <div className="auto-send-progress-bar" style={{ width: `${autoSendProgress}%` }} />
-                </div>
-              )}
+              {/* Auto-send progress bar - always render container to prevent layout shift */}
+              <div className="auto-send-progress-container">
+                <div
+                  className="auto-send-progress-bar"
+                  style={{ width: `${autoSendProgress}%`, opacity: autoSendProgress > 0 ? 1 : 0 }}
+                />
+              </div>
             </div>
           )}
 
