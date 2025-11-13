@@ -10,6 +10,18 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* Allow page scrolling on mobile but with fixed layout */
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #root {
+    overflow: visible;
+  }
+}
+
 .app-container {
   background: #1a1a1a;
   border-radius: 16px;
@@ -438,8 +450,8 @@ html, body, #root {
 @media (max-width: 768px) {
   .app-container {
     border-radius: 0;
-    height: 100vh;
-    max-height: 100vh;
+    min-height: 100vh;
+    height: auto;
   }
 
   .status-bar {
