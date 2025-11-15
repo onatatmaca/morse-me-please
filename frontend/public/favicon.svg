@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a0a0a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#39d353;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2ecc71;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100" height="100" fill="url(#bg)" rx="15"/>
+
+  <!-- Morse code symbols: dot and dash representing "M" (-- in Morse) -->
+  <!-- First dash -->
+  <rect x="20" y="35" width="25" height="8" fill="url(#glow)" rx="4">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Second dash -->
+  <rect x="55" y="35" width="25" height="8" fill="url(#glow)" rx="4">
+    <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Letter "P" in Morse: .--. -->
+  <!-- Dot -->
+  <circle cx="27" cy="57" r="4" fill="url(#glow)">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Dash -->
+  <rect x="36" y="53" width="20" height="8" fill="url(#glow)" rx="4">
+    <animate attributeName="opacity" values="1;0.7;1" dur="1.5s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Dash -->
+  <rect x="61" y="53" width="20" height="8" fill="url(#glow)" rx="4">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1.5s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Border glow -->
+  <rect width="96" height="96" x="2" y="2" fill="none" stroke="#39d353" stroke-width="1" rx="15" opacity="0.3"/>
+</svg>
