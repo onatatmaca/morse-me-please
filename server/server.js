@@ -264,9 +264,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Catch-all route to serve index.html in production
+// Catch-all route to serve index.html in production (for SPA routing)
 if (!isDev) {
-  app.get('*', (req, res) => {
+  app.use((req, res) => {
     // Don't cache the main HTML file
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
