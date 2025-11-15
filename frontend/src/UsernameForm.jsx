@@ -15,7 +15,7 @@ export default function UsernameForm({ onSubmit, onlineUsers }) {
   return (
     <div className="username-form-container">
       <div className="username-card">
-        <h1>🎯 Morse Me Please</h1>
+        <img src="/logo250_transparent.png" alt="Morse Me Please" className="login-logo" />
         <p className="subtitle">Connect with strangers through Morse code</p>
 
         {onlineUsers > 0 && (
