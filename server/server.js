@@ -266,7 +266,7 @@ app.use((req, res, next) => {
 
 // Catch-all route to serve index.html in production
 if (!isDev) {
-  app.get('/*', (req, res) => {
+  app.get('*', (req, res) => {
     // Don't cache the main HTML file
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
