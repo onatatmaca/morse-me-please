@@ -32,7 +32,6 @@ function LandingOverlay({ onEnter }) {
     <div className="landing-overlay">
       <div className="landing-content">
         <div className="landing-header">
-          <img src="/logo250_transparent.png" alt="Morse Me Please Logo" className="landing-logo" />
           <h1 className="landing-title">Morse Code Chat</h1>
           <div className="morse-animation">
             <span className="morse-dot">·</span>

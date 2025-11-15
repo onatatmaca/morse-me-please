@@ -57,13 +57,6 @@
   margin-bottom: 20px;
 }
 
-.landing-logo {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 12px;
-  filter: drop-shadow(0 0 15px rgba(57, 211, 83, 0.4));
-}
-
 .landing-title {
   font-size: 36px;
   color: #39d353;
@@ -271,11 +264,6 @@
     max-height: 90vh;
   }
 
-  .landing-logo {
-    width: 80px;
-    height: 80px;
-  }
-
   .landing-title {
     font-size: 30px;
   }
@@ -338,12 +326,6 @@
     padding: 22px 20px;
     border-radius: 12px;
     max-height: 92vh;
-  }
-
-  .landing-logo {
-    width: 70px;
-    height: 70px;
-    margin-bottom: 10px;
   }
 
   .landing-title {
@@ -409,11 +391,6 @@
 @media (max-width: 480px) {
   .landing-content {
     padding: 18px 16px;
-  }
-
-  .landing-logo {
-    width: 60px;
-    height: 60px;
   }
 
   .landing-title {
