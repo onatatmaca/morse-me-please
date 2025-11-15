@@ -3,10 +3,23 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 
 const app = express();
 const isDev = process.env.NODE_ENV !== 'production';
+
+// Enable Gzip/Brotli compression for all responses
+app.use(compression({
+  level: 6, // Compression level (0-9, where 6 is a good balance)
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 // Security headers middleware
 app.use((req, res, next) => {
@@ -53,9 +66,27 @@ app.disable('x-powered-by');
 // CORS configuration
 app.use(cors());
 
-// Serve static files in production
+// Serve static files in production with caching
 if (!isDev) {
-  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true, // Enable ETags for cache validation
+    lastModified: true, // Send Last-Modified header
+    immutable: true, // Indicate that files won't change
+    setHeaders: (res, filepath) => {
+      // Different cache strategies for different file types
+      if (filepath.endsWith('.html')) {
+        // Don't cache HTML files - always revalidate
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      } else if (filepath.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)) {
+        // Cache assets for 1 year
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (filepath.match(/\.(json|xml|txt|ico)$/)) {
+        // Cache config files for 1 week
+        res.setHeader('Cache-Control', 'public, max-age=604800');
+      }
+    }
+  }));
 }
 
 const httpServer = createServer(app);
@@ -211,9 +242,35 @@ io.on('connection', (socket) => {
 
 // DUPLEX MODE: No inactivity checking needed - both users can send anytime
 
+// Serve robots.txt and sitemap.xml with proper MIME types
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
+// Redirect non-www to www (SEO best practice - choose one canonical domain)
+// Comment out if you prefer non-www version
+app.use((req, res, next) => {
+  const host = req.headers.host;
+  // Only redirect in production and if not already www
+  if (!isDev && host && !host.startsWith('www.') && !host.startsWith('localhost')) {
+    return res.redirect(301, `https://www.${host}${req.url}`);
+  }
+  next();
+});
+
 // Catch-all route to serve index.html in production
 if (!isDev) {
   app.get('/*', (req, res) => {
+    // Don't cache the main HTML file
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 }

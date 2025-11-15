@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a0a0a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#39d353;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#39d353;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#39d353;stop-opacity:0.3" />
+    </linearGradient>
+
+    <!-- Animated scanline effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Grid pattern (matrix style) -->
+  <g opacity="0.05" stroke="#39d353" stroke-width="1" fill="none">
+    <line x1="0" y1="157.5" x2="1200" y2="157.5"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="472.5" x2="1200" y2="472.5"/>
+    <line x1="300" y1="0" x2="300" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="900" y1="0" x2="900" y2="630"/>
+  </g>
+
+  <!-- Decorative morse code background -->
+  <g opacity="0.1" fill="#39d353">
+    <!-- Morse pattern -->
+    <circle cx="100" cy="100" r="6"/>
+    <rect x="120" y="94" width="30" height="12" rx="6"/>
+    <circle cx="170" cy="100" r="6"/>
+
+    <circle cx="1050" cy="530" r="6"/>
+    <rect x="1070" y="524" width="30" height="12" rx="6"/>
+    <rect x="1110" y="524" width="30" height="12" rx="6"/>
+  </g>
+
+  <!-- Main title -->
+  <text x="600" y="220" font-family="'Monaco', 'Courier New', monospace" font-size="72" font-weight="bold" fill="#39d353" text-anchor="middle" filter="url(#glow)">
+    MORSE ME PLEASE
+  </text>
+
+  <!-- Morse code representation of "MORSE" -->
+  <g transform="translate(600, 280)" fill="none" stroke="url(#glowGrad)" stroke-width="8" stroke-linecap="round">
+    <!-- -- --- .-. ... . -->
+    <!-- M: -- -->
+    <line x1="-400" y1="0" x2="-360" y2="0"/>
+    <line x1="-345" y1="0" x2="-305" y2="0"/>
+
+    <!-- O: --- -->
+    <line x1="-275" y1="0" x2="-235" y2="0"/>
+    <line x1="-220" y1="0" x2="-180" y2="0"/>
+    <line x1="-165" y1="0" x2="-125" y2="0"/>
+
+    <!-- R: .-. -->
+    <circle cx="-95" cy="0" r="6" fill="url(#glowGrad)"/>
+    <line x1="-70" y1="0" x2="-30" y2="0"/>
+    <circle cx="0" cy="0" r="6" fill="url(#glowGrad)"/>
+
+    <!-- S: ... -->
+    <circle cx="30" cy="0" r="6" fill="url(#glowGrad)"/>
+    <circle cx="55" cy="0" r="6" fill="url(#glowGrad)"/>
+    <circle cx="80" cy="0" r="6" fill="url(#glowGrad)"/>
+
+    <!-- E: . -->
+    <circle cx="110" cy="0" r="6" fill="url(#glowGrad)"/>
+  </g>
+
+  <!-- Subtitle -->
+  <text x="600" y="370" font-family="'Monaco', 'Courier New', monospace" font-size="32" fill="#5b9aff" text-anchor="middle">
+    Real-Time Morse Code Communication
+  </text>
+
+  <!-- Feature highlights -->
+  <g font-family="'Monaco', 'Courier New', monospace" font-size="20" fill="#e5e5e5">
+    <text x="300" y="460" text-anchor="middle">✓ Live Translation</text>
+    <text x="600" y="460" text-anchor="middle">✓ Instant Matching</text>
+    <text x="900" y="460" text-anchor="middle">✓ Practice &amp; Learn</text>
+  </g>
+
+  <!-- URL -->
+  <text x="600" y="550" font-family="'Monaco', 'Courier New', monospace" font-size="24" fill="#667eea" text-anchor="middle" font-weight="600">
+    www.morsemeplease.com
+  </text>
+
+  <!-- Decorative border -->
+  <rect width="1196" height="626" x="2" y="2" fill="none" stroke="#39d353" stroke-width="2" rx="10" opacity="0.3"/>
+  <rect width="1190" height="620" x="5" y="5" fill="none" stroke="#39d353" stroke-width="1" rx="8" opacity="0.15"/>
+</svg>
