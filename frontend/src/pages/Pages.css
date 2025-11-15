@@ -1,8 +1,12 @@
 /* src/pages/Pages.css */
 
 .page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: #0a0a0a;
-  min-height: 100vh;
   padding: 80px 20px 40px;
   overflow-y: auto;
   overflow-x: hidden;
