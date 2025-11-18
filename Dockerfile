@@ -15,15 +15,14 @@ WORKDIR /app
 # Install build dependencies for native modules (better-sqlite3)
 RUN apk add --no-cache python3 make g++
 
-# Install server dependencies
-COPY server/package*.json ./
+# Copy server code first (excluding node_modules via .dockerignore)
+COPY server/ ./
+
+# Install server dependencies (this compiles better-sqlite3)
 RUN npm ci --only=production
 
 # Remove build dependencies to keep image small
 RUN apk del python3 make g++
-
-# Copy server code
-COPY server/ ./
 
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/dist ./public
