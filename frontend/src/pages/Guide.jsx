@@ -107,7 +107,7 @@ function Guide() {
           <h3>WPM (Words Per Minute)</h3>
           <p>
             Adjust the speed of Morse code transmission from 5 WPM (very slow, for beginners) up to
-            40 WPM (advanced). Find a comfortable speed that challenges you without overwhelming you.
+            50 WPM (expert). Find a comfortable speed that challenges you without overwhelming you.
             As you improve, gradually increase the WPM to build your skills.
           </p>
 
