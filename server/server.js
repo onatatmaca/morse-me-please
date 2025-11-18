@@ -12,6 +12,8 @@ const db = require('./db'); // Database logging
 const adminRoutes = require('./admin-routes'); // Admin API routes
 const cookieParser = require('cookie-parser'); // Cookie parsing for sessions
 const sanitize = require('./sanitize'); // Input sanitization
+const rateLimit = require('./socket-rate-limit'); // Socket rate limiting
+const securityLogger = require('./security-logger'); // Security event logging
 
 const app = express();
 const isDev = process.env.NODE_ENV !== 'production';
@@ -102,12 +104,37 @@ if (!isDev) {
 }
 
 const httpServer = createServer(app);
+
+// Allowed origins for CORS
+const allowedOrigins = isDev
+  ? ["http://localhost:5173", "http://localhost:3000"]
+  : ["https://morsemeplease.com", "https://www.morsemeplease.com"];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: isDev ? "http://localhost:5173" : "*",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`⚠️ CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  // Connection timeout
+  connectTimeout: 10000,
+  // Ping timeout (detect dead connections)
+  pingTimeout: 30000,
+  pingInterval: 25000,
+  // Max HTTP buffer size (prevent large payload attacks)
+  maxHttpBufferSize: 1e6, // 1MB
+  // Transports (prefer websocket for better performance and security)
+  transports: ['websocket', 'polling']
 });
 
 let waitingUser = null;
@@ -138,7 +165,20 @@ const updatePeakUsers = () => {
 };
 
 io.on('connection', (socket) => {
-  console.log('✅ User connected:', socket.id);
+  const clientIp = getClientIp(socket);
+
+  // Rate limiting: Check if IP can connect
+  if (!rateLimit.canConnect(clientIp)) {
+    console.log(`🚫 Connection rejected: Rate limit exceeded for IP ${clientIp}`);
+    socket.emit('error', 'Too many connections from your IP. Please try again later.');
+    socket.disconnect(true);
+    return;
+  }
+
+  // Register connection for rate limiting
+  rateLimit.registerConnection(clientIp, socket);
+
+  console.log(`✅ User connected: ${socket.id} from ${clientIp}`);
 
   // Track peak concurrent users
   updatePeakUsers();
@@ -148,6 +188,9 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('❌ User disconnected:', socket.id);
+
+    // Clean up rate limiting
+    rateLimit.cleanupSocket(socket.id);
 
     // End database session
     try {
@@ -241,6 +284,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('morse-message-complete', (data) => {
+    // Rate limiting: Check if socket can send message
+    const rateLimitCheck = rateLimit.canSendMessage(socket.id);
+    if (!rateLimitCheck.allowed) {
+      console.log(`🚫 Message rate limit exceeded for ${socket.username} (${socket.id})`);
+      socket.emit('rate-limit-error', {
+        message: 'Sending messages too quickly. Please slow down.',
+        resetIn: rateLimitCheck.resetIn
+      });
+      return;
+    }
+
     const partnerId = activePairs.get(socket.id);
     if (partnerId) {
       const partnerSocket = io.sockets.sockets.get(partnerId);
