@@ -1,10 +1,10 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MorseKey from './MorseKey';
+import MessageTranscript from './MessageTranscript';
+import ControlPanel from './ControlPanel';
 import SettingsPanel from './SettingsPanel';
-import SandboxMode from './SandboxMode';
 import { translateMorse } from './MorseHelper';
-import { TUTORIALS } from './tutorialData';
-import './PracticeMode.css';
+import './App.css'; // Reuse all the same styles from chat mode
 
 const DEFAULT_SETTINGS = {
   wpm: 12,
@@ -18,28 +18,32 @@ const DEFAULT_SETTINGS = {
   partnerFrequency: 900
 };
 
-export default function PracticeMode({ username, onExit }) {
-  const [view, setView] = useState('menu'); // 'menu', 'sandbox', 'tutorial'
-  const [selectedTutorial, setSelectedTutorial] = useState(null);
+export default function SandboxMode({ username, onExit }) {
+  const [messages, setMessages] = useState([]);
   const [myLiveMessage, setMyLiveMessage] = useState('');
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
+  const [currentMessageStartTime, setCurrentMessageStartTime] = useState(null);
+  const [autoSendProgress, setAutoSendProgress] = useState(0);
+  const [totalWPM, setTotalWPM] = useState(0);
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
   const wordSpaceTimeout = useRef(null);
   const morseKeyRef = useRef(null);
+  const autoSendTimeout = useRef(null);
+  const progressInterval = useRef(null);
+  const isTouchDevice = useRef(false);
+  const dotButtonRef = useRef(null);
+  const dashButtonRef = useRef(null);
   const audioContextRef = useRef(null);
   const myOscillatorRef = useRef(null);
   const myGainNodeRef = useRef(null);
-  const dotButtonRef = useRef(null);
-  const dashButtonRef = useRef(null);
-  const isTouchDevice = useRef(false);
   const keyPressStart = useRef(null);
+  const myLiveMessageRef = useRef('');
+  const currentMessageStartTimeRef = useRef(null);
 
-  // Refs for keyboard handlers (to avoid stale closures)
+  // Refs for keyboard handlers
   const handleMorseSignalRef = useRef(null);
   const handleKeyPressRef = useRef(null);
 
@@ -64,7 +68,7 @@ export default function PracticeMode({ username, onExit }) {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
-  // Audio functions
+  // Audio functions (same as chat mode)
   const startMyMorseTone = () => {
     if (!audioContextRef.current || settings.myVolume === 0) return;
     if (myOscillatorRef.current) return;
@@ -158,8 +162,22 @@ export default function PracticeMode({ username, onExit }) {
     }
   };
 
+  const calculateWPM = (morseText, startTime, endTime) => {
+    if (!startTime || !endTime) return 0;
+    const words = morseText.split(' | ').length;
+    const minutes = (endTime - startTime) / 60000;
+    return minutes > 0 ? Math.round(words / minutes) : 0;
+  };
+
   const handleMorseSignal = (signal, playSound = true, showVisualFeedback = true) => {
-    // Visual feedback on buttons
+    // Start timer on first signal
+    if (!currentMessageStartTime) {
+      const now = Date.now();
+      setCurrentMessageStartTime(now);
+      currentMessageStartTimeRef.current = now;
+    }
+
+    // Visual feedback
     if (showVisualFeedback) {
       if (settings.twoCircleMode) {
         if (signal === 'dot' && dotButtonRef.current) {
@@ -175,7 +193,11 @@ export default function PracticeMode({ username, onExit }) {
     }
 
     const symbol = signal === 'dot' ? '·' : '−';
-    setMyLiveMessage(prev => prev + symbol);
+    setMyLiveMessage(prev => {
+      const newMessage = prev + symbol;
+      myLiveMessageRef.current = newMessage;
+      return newMessage;
+    });
 
     if (playSound) {
       playMyMorseSound(signal === 'dash');
@@ -186,6 +208,10 @@ export default function PracticeMode({ username, onExit }) {
     // Clear existing timeouts
     if (letterSpaceTimeout.current) clearTimeout(letterSpaceTimeout.current);
     if (wordSpaceTimeout.current) clearTimeout(wordSpaceTimeout.current);
+    if (autoSendTimeout.current) clearTimeout(autoSendTimeout.current);
+    if (progressInterval.current) clearInterval(progressInterval.current);
+
+    setAutoSendProgress(0);
 
     // Schedule letter/word spacing
     letterSpaceTimeout.current = setTimeout(() => {
@@ -203,9 +229,24 @@ export default function PracticeMode({ username, onExit }) {
         return trimmed + ' | ';
       });
     }, timing.wordPause);
+
+    // Auto-send after submit delay with progress bar
+    const startTime = Date.now();
+    progressInterval.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / settings.submitDelay) * 100, 100);
+      setAutoSendProgress(progress);
+    }, 50);
+
+    autoSendTimeout.current = setTimeout(() => {
+      autoSendMessage();
+      setAutoSendProgress(0);
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+      }
+    }, settings.submitDelay);
   };
 
-  // Update ref for keyboard handlers
   handleMorseSignalRef.current = handleMorseSignal;
 
   // Keyboard handlers
@@ -235,12 +276,11 @@ export default function PracticeMode({ username, onExit }) {
 
   // Keyboard event listener
   useEffect(() => {
-    if (!settings.keyboardEnabled || !selectedTutorial) return;
+    if (!settings.keyboardEnabled) return;
 
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Direct input: Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash
       if (e.key === 'z' || e.key === 'Z' || e.code === 'ControlLeft') {
         e.preventDefault();
         if (!e.repeat && handleMorseSignalRef.current) {
@@ -251,9 +291,7 @@ export default function PracticeMode({ username, onExit }) {
         if (!e.repeat && handleMorseSignalRef.current) {
           handleMorseSignalRef.current('dash');
         }
-      }
-      // Hold mode: Spacebar timing
-      else if (e.key === ' ' || e.code === 'Space') {
+      } else if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
         if (!e.repeat && handleKeyPressRef.current) {
           handleKeyPressRef.current('start');
@@ -279,7 +317,7 @@ export default function PracticeMode({ username, onExit }) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [settings.keyboardEnabled, selectedTutorial]);
+  }, [settings.keyboardEnabled]);
 
   const handleCircleButtonPress = (signal, e) => {
     if (e.type === 'touchstart') {
@@ -291,235 +329,201 @@ export default function PracticeMode({ username, onExit }) {
     handleMorseSignal(signal);
   };
 
-  const handleCheck = () => {
-    const tutorial = selectedTutorial;
-    const userMorse = myLiveMessage.trim();
-    const targetMorse = tutorial.targetMorse;
+  const autoSendMessage = () => {
+    const messageToSend = myLiveMessageRef.current;
+    const startTime = currentMessageStartTimeRef.current;
 
-    const normalizeSpaces = (str) => str.replace(/\s+/g, ' ').replace(/\s+\|\s+/g, ' | ').trim();
-    const isMatch = normalizeSpaces(userMorse) === normalizeSpaces(targetMorse);
+    if (!messageToSend.trim()) return;
 
-    setIsCorrect(isMatch);
-    setShowResult(true);
+    const endTime = Date.now();
+    const wpm = calculateWPM(messageToSend, startTime, endTime);
+
+    // Add to messages
+    setMessages(prev => [...prev, {
+      from: username,
+      content: messageToSend,
+      timestamp: endTime,
+      wpm: wpm
+    }]);
+
+    // Update total WPM
+    setTotalWPM(prev => {
+      const msgCount = prev === 0 ? 0 : messages.filter(m => m.from === username).length;
+      const newMsgCount = msgCount + 1;
+      return ((prev * msgCount) + wpm) / newMsgCount;
+    });
+
+    // Clear live message
+    setMyLiveMessage('');
+    myLiveMessageRef.current = '';
+    setCurrentMessageStartTime(null);
+    currentMessageStartTimeRef.current = null;
   };
 
-  const handleReset = () => {
+  const handleClear = () => {
+    setMessages([]);
     setMyLiveMessage('');
-    setShowResult(false);
-    setIsCorrect(false);
+    setTotalWPM(0);
+    setCurrentMessageStartTime(null);
+    setAutoSendProgress(0);
     if (letterSpaceTimeout.current) clearTimeout(letterSpaceTimeout.current);
     if (wordSpaceTimeout.current) clearTimeout(wordSpaceTimeout.current);
+    if (autoSendTimeout.current) clearTimeout(autoSendTimeout.current);
+    if (progressInterval.current) clearInterval(progressInterval.current);
   };
 
-  const handleBackToTutorials = () => {
-    handleReset();
-    setSelectedTutorial(null);
-    setView('menu');
-  };
-
-  // Show Sandbox Mode
-  if (view === 'sandbox') {
-    return <SandboxMode username={username} onExit={() => setView('menu')} />;
-  }
-
-  // Tutorial Selector View
-  if (view === 'menu' || !selectedTutorial) {
-    return (
-      <div className="practice-mode-page">
-        <div className="practice-content">
-          <div className="practice-header">
-            <h1>🎓 Practice Mode</h1>
-            <p>Choose how you want to practice</p>
-            <button className="back-btn" onClick={onExit}>
-              ← Back to Mode Selection
-            </button>
-          </div>
-
-          {/* Sandbox Mode Card - Highlighted */}
-          <div className="sandbox-card-container">
-            <button
-              className="sandbox-card"
-              onClick={() => setView('sandbox')}
-            >
-              <div className="sandbox-icon">🎯</div>
-              <div className="sandbox-content">
-                <h2>Sandbox Mode</h2>
-                <p>Free practice with the exact chat interface - no tutorials, just type!</p>
-                <div className="sandbox-badge">Recommended</div>
-              </div>
-            </button>
-          </div>
-
-          <div className="section-divider">
-            <span>OR</span>
-          </div>
-
-          <h3 className="tutorial-section-title">📚 Guided Tutorials</h3>
-          <div className="tutorial-list">
-            {TUTORIALS.map((tutorial) => (
-              <button
-                key={tutorial.id}
-                className="tutorial-card"
-                onClick={() => {
-                  setSelectedTutorial(tutorial);
-                  setView('tutorial');
-                }}
-              >
-                <div className="tutorial-number">#{tutorial.id}</div>
-                <h3>{tutorial.title}</h3>
-                <p>{tutorial.description}</p>
-                <div className="tutorial-target">
-                  Target: <span className="target-text">{tutorial.targetText}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Practice Interface View
   return (
-    <div className="practice-mode-page">
-      <div className="practice-interface">
-        {/* Header with Settings */}
-        <div className="practice-interface-header">
-          <button className="back-btn-small" onClick={handleBackToTutorials}>
-            ← Back
-          </button>
-          <h2>{selectedTutorial.title}</h2>
+    <>
+      <div className="app-container">
+        <div className="status-bar">
+          <div className="user-info">
+            <span className="username">
+              You: {username}
+              {totalWPM > 0 && <span className="wpm-badge">{Math.round(totalWPM)} WPM</span>}
+            </span>
+            <span className="partner">
+              Mode: Sandbox Practice 🎯
+            </span>
+          </div>
+          <div className="status-info">
+            <div className="status">
+              Practice mode - Type and send messages to yourself!
+            </div>
+          </div>
+
           <button
-            className="settings-btn-practice"
+            className="settings-btn"
             onClick={() => setShowSettings(true)}
-            title="Settings"
+            title="Settings (Volume & Sound)"
           >
             ⚙️
           </button>
         </div>
 
-        {/* Target Display */}
-        <div className="target-display">
-          <h3>Type this:</h3>
-          <div className="target-text-large">{selectedTutorial.targetText}</div>
-          <div className="target-morse">{selectedTutorial.targetMorse}</div>
-          <div className="hint-text">💡 {selectedTutorial.hint}</div>
-        </div>
+        <div className="main-app-content">
+          {/* Circle Mode Toggle */}
+          <div className="input-mode-toggle">
+            <button
+              className={`mode-toggle ${settings.twoCircleMode ? 'active' : ''}`}
+              onClick={() => setSettings({ ...settings, twoCircleMode: !settings.twoCircleMode })}
+            >
+              <div className="toggle-slider">
+                <span className="toggle-option">{settings.twoCircleMode ? 'Two Circles' : 'Single Circle'}</span>
+              </div>
+            </button>
+          </div>
 
-        {/* Circle Mode Toggle */}
-        <div className="input-mode-toggle">
-          <button
-            className={`mode-toggle ${settings.twoCircleMode ? 'active' : ''}`}
-            onClick={() => setSettings({ ...settings, twoCircleMode: !settings.twoCircleMode })}
-          >
-            <div className="toggle-slider">
-              <span className="toggle-option">{settings.twoCircleMode ? 'Two Circles' : 'Single Circle'}</span>
+          {/* Morse Key */}
+          {!settings.twoCircleMode ? (
+            <MorseKey
+              ref={morseKeyRef}
+              onSignal={handleMorseSignal}
+              disabled={false}
+              volume={settings.myVolume}
+              dashThreshold={timing.dashThreshold}
+              onPlaySound={handleMorseKeyTone}
+            />
+          ) : (
+            <div className="two-circle-container">
+              <button
+                ref={dotButtonRef}
+                className="circle-button dot-button"
+                onMouseDown={(e) => {
+                  if (e.button !== 0) return;
+                  handleCircleButtonPress('dot', e);
+                }}
+                onTouchStart={(e) => handleCircleButtonPress('dot', e)}
+                disabled={false}
+              >
+                <span className="circle-label">DOT</span>
+                <span className="circle-symbol">·</span>
+              </button>
+              <button
+                ref={dashButtonRef}
+                className="circle-button dash-button"
+                onMouseDown={(e) => {
+                  if (e.button !== 0) return;
+                  handleCircleButtonPress('dash', e);
+                }}
+                onTouchStart={(e) => handleCircleButtonPress('dash', e)}
+                disabled={false}
+              >
+                <span className="circle-label">DASH</span>
+                <span className="circle-symbol">−</span>
+              </button>
             </div>
-          </button>
-        </div>
+          )}
 
-        {/* Morse Key */}
-        {!settings.twoCircleMode ? (
-          <MorseKey
-            ref={morseKeyRef}
-            onSignal={handleMorseSignal}
-            disabled={false}
-            volume={settings.myVolume}
-            dashThreshold={timing.dashThreshold}
-            onPlaySound={handleMorseKeyTone}
+          {/* Live Translation */}
+          {settings.showLetters && myLiveMessage && (
+            <div className="live-translation">
+              <div className="morse-symbols">{myLiveMessage}</div>
+              <div className="translated-text">
+                {translateMorse(myLiveMessage)}
+              </div>
+              <div className="auto-send-progress-container">
+                <div
+                  className="auto-send-progress-bar"
+                  style={{ width: `${autoSendProgress}%`, opacity: autoSendProgress > 0 ? 1 : 0 }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Timing Guide */}
+          <div className="timing-guide">
+            <div className="timing-item">
+              <span className="timing-icon">🎵</span>
+              <span className="timing-label">{settings.wpm} WPM</span>
+              <span className="timing-desc">Speed</span>
+            </div>
+            <div className="timing-divider">|</div>
+            <div className="timing-item">
+              <span className="timing-icon">⏱️</span>
+              <span className="timing-label">{(settings.submitDelay / 1000).toFixed(1)}s</span>
+              <span className="timing-desc">Auto-send delay</span>
+            </div>
+          </div>
+
+          {/* Keyboard Hint */}
+          {settings.keyboardEnabled && (
+            <div className="keyboard-hint">
+              ⌨️ Z / Left CTRL = Dot (·) | X / Right CTRL = Dash (−) | Hold Spacebar (duration = dot/dash)
+            </div>
+          )}
+
+          {/* Control Panel - Simplified for Sandbox */}
+          <div className="control-panel">
+            <button
+              onClick={handleClear}
+              className="control-btn find-new-btn"
+            >
+              <span className="btn-icon">🗑️</span>
+              <span className="btn-text">Clear Messages</span>
+            </button>
+
+            <button
+              onClick={onExit}
+              className="control-btn back-btn"
+            >
+              <span className="btn-icon">←</span>
+              <span className="btn-text">Back to Practice</span>
+            </button>
+          </div>
+
+          {/* Message Transcript */}
+          <MessageTranscript
+            messages={messages}
+            myLiveMessage={myLiveMessage}
+            partnerLiveMessage=""
+            currentUser={username}
+            partnerUsername="Sandbox"
+            currentMessageStartTime={currentMessageStartTime}
+            partnerMessageStartTime={null}
+            partnerTyping={false}
           />
-        ) : (
-          <div className="two-circle-container">
-            <button
-              ref={dotButtonRef}
-              className="circle-button dot-button"
-              onMouseDown={(e) => {
-                if (e.button !== 0) return;
-                handleCircleButtonPress('dot', e);
-              }}
-              onTouchStart={(e) => handleCircleButtonPress('dot', e)}
-            >
-              <span className="circle-label">DOT</span>
-              <span className="circle-symbol">·</span>
-            </button>
-            <button
-              ref={dashButtonRef}
-              className="circle-button dash-button"
-              onMouseDown={(e) => {
-                if (e.button !== 0) return;
-                handleCircleButtonPress('dash', e);
-              }}
-              onTouchStart={(e) => handleCircleButtonPress('dash', e)}
-            >
-              <span className="circle-label">DASH</span>
-              <span className="circle-symbol">−</span>
-            </button>
-          </div>
-        )}
-
-        {/* Live Translation */}
-        {settings.showLetters && myLiveMessage && (
-          <div className="live-translation">
-            <div className="morse-symbols">{myLiveMessage}</div>
-            <div className="translated-text">
-              {translateMorse(myLiveMessage)}
-            </div>
-          </div>
-        )}
-
-        {/* Keyboard Hint */}
-        {settings.keyboardEnabled && (
-          <div className="keyboard-hint">
-            ⌨️ Z / Left CTRL = Dot (·) | X / Right CTRL = Dash (−) | Hold Spacebar (duration = dot/dash)
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="practice-actions">
-          <button className="action-btn check-btn" onClick={handleCheck}>
-            ✓ Check Answer
-          </button>
-          <button className="action-btn reset-btn" onClick={handleReset}>
-            ↺ Reset
-          </button>
         </div>
 
-        {/* Result Display */}
-        {showResult && (
-          <div className={`result-display ${isCorrect ? 'correct' : 'incorrect'}`}>
-            {isCorrect ? (
-              <>
-                <div className="result-icon">🎉</div>
-                <h3>Perfect!</h3>
-                <p>You typed it correctly!</p>
-                <button className="next-btn" onClick={handleBackToTutorials}>
-                  Choose Next Tutorial →
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="result-icon">📝</div>
-                <h3>Not quite</h3>
-                <p>Try again! Compare your answer with the target.</p>
-                <div className="comparison">
-                  <div className="comparison-row">
-                    <span className="comparison-label">Target:</span>
-                    <span className="comparison-value">{selectedTutorial.targetMorse}</span>
-                  </div>
-                  <div className="comparison-row">
-                    <span className="comparison-label">Your answer:</span>
-                    <span className="comparison-value">{myLiveMessage}</span>
-                  </div>
-                </div>
-                <button className="retry-btn" onClick={handleReset}>
-                  Try Again
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Settings Panel */}
         <SettingsPanel
           settings={settings}
           onSettingsChange={setSettings}
@@ -527,6 +531,6 @@ export default function PracticeMode({ username, onExit }) {
           onClose={() => setShowSettings(false)}
         />
       </div>
-    </div>
+    </>
   );
 }
