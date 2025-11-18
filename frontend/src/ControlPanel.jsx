@@ -3,7 +3,8 @@ import './ControlPanel.css';
 
 export default function ControlPanel({
   onDisconnect,
-  onFindNew
+  onFindNew,
+  onBack
 }) {
   return (
     <div className="control-panel">
@@ -22,6 +23,16 @@ export default function ControlPanel({
         <span className="btn-icon">✕</span>
         <span className="btn-text">Disconnect</span>
       </button>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="control-btn back-btn"
+        >
+          <span className="btn-icon">←</span>
+          <span className="btn-text">Change Mode</span>
+        </button>
+      )}
     </div>
   );
 }

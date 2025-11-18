@@ -49,6 +49,134 @@
   transform: translateY(-2px);
 }
 
+/* Sandbox Card - Highlighted */
+.sandbox-card-container {
+  max-width: 700px;
+  margin: 0 auto 30px;
+}
+
+.sandbox-card {
+  width: 100%;
+  background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+  border: 3px solid #39d353;
+  border-radius: 20px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sandbox-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(57, 211, 83, 0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.sandbox-card:hover::before {
+  opacity: 1;
+}
+
+.sandbox-card:hover {
+  transform: translateY(-6px);
+  border-color: #2ecc71;
+  box-shadow: 0 12px 32px rgba(57, 211, 83, 0.4);
+}
+
+.sandbox-icon {
+  font-size: 64px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.sandbox-content {
+  flex: 1;
+  text-align: left;
+}
+
+.sandbox-content h2 {
+  color: #39d353;
+  font-size: 26px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.sandbox-content p {
+  color: #bbb;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.sandbox-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #39d353, #2ecc71);
+  border-radius: 12px;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(57, 211, 83, 0.3);
+}
+
+.section-divider {
+  text-align: center;
+  margin: 40px auto;
+  position: relative;
+  max-width: 600px;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #333, transparent);
+}
+
+.section-divider::before {
+  left: 0;
+}
+
+.section-divider::after {
+  right: 0;
+}
+
+.section-divider span {
+  background: #1a1a1a;
+  padding: 0 20px;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tutorial-section-title {
+  text-align: center;
+  color: #999;
+  font-size: 18px;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
 /* Tutorial List - SCROLLABLE */
 .tutorial-list {
   display: flex;
@@ -128,6 +256,7 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
+  position: relative;
 }
 
 .back-btn-small {
@@ -151,6 +280,30 @@
   color: #e5e5e5;
   font-size: 22px;
   font-weight: 600;
+  flex: 1;
+}
+
+.settings-btn-practice {
+  background: #262626;
+  border: 2px solid #333;
+  color: #39d353;
+  font-size: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.settings-btn-practice:hover {
+  background: #333;
+  border-color: #39d353;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(57, 211, 83, 0.3);
 }
 
 /* Target Display */
@@ -194,17 +347,51 @@
   line-height: 1.5;
 }
 
-/* Input Mode Toggle */
+/* Input Mode Toggle - iOS Style */
 .input-mode-toggle {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 16px;
 }
 
-.toggle-label {
-  color: #666;
+.mode-toggle {
+  width: 160px;
+  height: 38px;
+  background: linear-gradient(145deg, #2c2c2c, #1a1a1a);
+  border: 2px solid #444;
+  border-radius: 19px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  overflow: hidden;
+}
+
+.mode-toggle.active {
+  background: linear-gradient(145deg, #39d353, #2ecc71);
+  border-color: #27ae60;
+}
+
+.toggle-slider {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-option {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   font-family: 'Monaco', monospace;
+  letter-spacing: 0.5px;
+}
+
+.mode-toggle:not(.active) .toggle-option {
+  color: #888;
 }
 
 /* Reuse existing two-circle styles from App.css */
@@ -470,6 +657,20 @@
   box-shadow: 0 6px 16px rgba(243, 156, 18, 0.4);
 }
 
+/* Keyboard Hint */
+.keyboard-hint {
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(57, 211, 83, 0.1);
+  border: 1px solid rgba(57, 211, 83, 0.3);
+  color: #39d353;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Monaco', monospace;
+  margin: 12px 0;
+  border-radius: 8px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .practice-content,
@@ -479,6 +680,28 @@
 
   .practice-header h1 {
     font-size: 28px;
+  }
+
+  .sandbox-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 28px 24px;
+  }
+
+  .sandbox-icon {
+    font-size: 56px;
+  }
+
+  .sandbox-content {
+    text-align: center;
+  }
+
+  .sandbox-content h2 {
+    font-size: 22px;
+  }
+
+  .sandbox-content p {
+    font-size: 14px;
   }
 
   .tutorial-card {
@@ -495,6 +718,19 @@
 
   .target-morse {
     font-size: 16px;
+  }
+
+  .mode-toggle {
+    width: 140px;
+    height: 34px;
+  }
+
+  .toggle-option {
+    font-size: 11px;
+  }
+
+  .keyboard-hint {
+    display: none; /* Hide on mobile */
   }
 
   .two-circle-container {
@@ -531,5 +767,11 @@
 
   .result-display h3 {
     font-size: 24px;
+  }
+
+  .settings-btn-practice {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
 }
