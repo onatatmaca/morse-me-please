@@ -189,26 +189,19 @@ const MorseKey = forwardRef(({
     }
   };
 
-  // Expose methods to parent component for keyboard triggers
+  // Expose methods to parent component for keyboard triggers and visual feedback
   useImperativeHandle(ref, () => ({
     triggerPress: (signal) => {
       if (disabled) return;
 
       const isDash = signal === 'dash';
 
-      // Visual feedback
+      // Visual feedback only - sound is handled by handleMorseSignal in App.jsx
       setIsPressed(true);
       addRipple();
 
       if (isDash) {
         setPressProgress(100);
-      }
-
-      // Play sound - use custom function if provided
-      if (onPlaySound) {
-        onPlaySound(isDash);
-      } else {
-        playBeep(isDash);
       }
 
       // Reset visual state
