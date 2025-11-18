@@ -352,6 +352,10 @@ app.get('/sitemap.xml', (req, res) => {
 // Comment out if you prefer non-www version
 app.use((req, res, next) => {
   const host = req.headers.host;
+  // Skip redirect for admin and API routes to avoid conflicts
+  if (req.url.startsWith('/admin') || req.url.startsWith('/api/')) {
+    return next();
+  }
   // Only redirect in production and if not already www
   if (!isDev && host && !host.startsWith('www.') && !host.startsWith('localhost')) {
     return res.redirect(301, `https://www.${host}${req.url}`);
