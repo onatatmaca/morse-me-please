@@ -15,12 +15,70 @@ const MorseKey = forwardRef(({
   const audioContext = useRef(null);
   const progressInterval = useRef(null);
   const rippleCounter = useRef(0);
+  const currentOscillator = useRef(null);
+  const currentGainNode = useRef(null);
 
   useEffect(() => {
     audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
-  // Enhanced sound with more pleasant tones and envelopes
+  // Start continuous tone (for hold-based input)
+  const startTone = () => {
+    if (!audioContext.current || volume === 0) return;
+    if (currentOscillator.current) return; // Already playing
+
+    const ctx = audioContext.current;
+    const now = ctx.currentTime;
+
+    // Create oscillator with warmer tone
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    // Connect the audio graph
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Use triangle wave for warmer, less harsh sound
+    oscillator.type = 'triangle';
+    oscillator.frequency.value = 620; // Consistent tone while holding
+
+    // Low-pass filter for smoother sound
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 1;
+
+    // Quick attack to full volume
+    const attackTime = 0.01;
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(volume, now + attackTime);
+
+    oscillator.start(now);
+
+    currentOscillator.current = oscillator;
+    currentGainNode.current = gainNode;
+  };
+
+  // Stop continuous tone (for hold-based input)
+  const stopTone = () => {
+    if (!currentOscillator.current || !currentGainNode.current) return;
+
+    const ctx = audioContext.current;
+    const now = ctx.currentTime;
+    const releaseTime = 0.05;
+
+    // Quick fade out
+    currentGainNode.current.gain.cancelScheduledValues(now);
+    currentGainNode.current.gain.setValueAtTime(currentGainNode.current.gain.value, now);
+    currentGainNode.current.gain.linearRampToValueAtTime(0, now + releaseTime);
+
+    currentOscillator.current.stop(now + releaseTime);
+    currentOscillator.current = null;
+    currentGainNode.current = null;
+  };
+
+  // Enhanced sound with more pleasant tones and envelopes (for instant dot/dash via keyboard)
   const playBeep = (isDash) => {
     if (!audioContext.current || volume === 0) return;
 
@@ -87,6 +145,13 @@ const MorseKey = forwardRef(({
     setPressProgress(0);
     addRipple();
 
+    // Start the tone immediately when pressed (like a real CW key)
+    if (onPlaySound) {
+      onPlaySound(true); // Start tone via custom function
+    } else {
+      startTone(); // Start internal tone
+    }
+
     progressInterval.current = setInterval(() => {
       const elapsed = Date.now() - pressStartTime.current;
       const progress = Math.min((elapsed / dashThreshold) * 100, 100);
@@ -106,14 +171,14 @@ const MorseKey = forwardRef(({
     const isDash = pressDuration > dashThreshold;
     const signal = isDash ? 'dash' : 'dot';
 
-    onSignal(signal);
-
-    // Use custom sound function if provided, otherwise use internal
+    // Stop the tone when released (like a real CW key)
     if (onPlaySound) {
-      onPlaySound(isDash);
+      onPlaySound(false); // Stop tone via custom function
     } else {
-      playBeep(isDash);
+      stopTone(); // Stop internal tone
     }
+
+    onSignal(signal);
 
     setIsPressed(false);
     setPressProgress(0);
