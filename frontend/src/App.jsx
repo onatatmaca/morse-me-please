@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import socket from './socket';
 import UsernameForm from './UsernameForm';
+import ModeSelector from './components/ModeSelector';
+import PracticeMode from './PracticeMode';
 import MorseKey from './MorseKey';
 import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
@@ -22,6 +24,7 @@ const DEFAULT_SETTINGS = {
 
 export default function App() {
   const [username, setUsername] = useState('');
+  const [mode, setMode] = useState(''); // 'practice' or 'chat'
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState('');
   const [partnerUsername, setPartnerUsername] = useState('');
@@ -694,9 +697,30 @@ export default function App() {
     // Don't connect here - let useEffect handle it after handlers are registered
   };
 
+  const handleModeSelect = (selectedMode) => {
+    setMode(selectedMode);
+  };
+
+  const handleExitPractice = () => {
+    setMode('chat'); // Switch to chat mode
+  };
+
+  // Show username form if no username
   if (!username) {
     return <UsernameForm onSubmit={handleUsernameSubmit} onlineUsers={onlineUsers} />;
   }
+
+  // Show mode selector if username is set but no mode selected
+  if (!mode) {
+    return <ModeSelector username={username} onlineUsers={onlineUsers} onSelectMode={handleModeSelect} />;
+  }
+
+  // Show practice mode
+  if (mode === 'practice') {
+    return <PracticeMode username={username} onExit={handleExitPractice} />;
+  }
+
+  // Continue with chat mode (existing code below)
 
   return (
     <>
