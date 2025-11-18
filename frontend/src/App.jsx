@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import socket from './socket';
 import UsernameForm from './UsernameForm';
+import ModeSelector from './ModeSelector';
+import PracticeMode from './PracticeMode';
 import MorseKey from './MorseKey';
 import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
@@ -22,6 +24,7 @@ const DEFAULT_SETTINGS = {
 
 export default function App() {
   const [username, setUsername] = useState('');
+  const [mode, setMode] = useState(''); // 'practice' or 'chat'
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState('');
   const [partnerUsername, setPartnerUsername] = useState('');
@@ -477,13 +480,13 @@ export default function App() {
     };
   }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
 
-  // Connect socket and emit username AFTER handlers are registered
+  // Connect socket and emit username AFTER handlers are registered (only for chat mode)
   useEffect(() => {
-    if (username && !socket.connected) {
+    if (username && mode === 'chat' && !socket.connected) {
       socket.connect();
       socket.emit('set-username', username);
     }
-  }, [username]); // Run when username changes
+  }, [username, mode]); // Run when username or mode changes
 
   const calculateWPM = (morseText, startTime, endTime) => {
     if (!startTime || !endTime) return 0;
@@ -694,10 +697,35 @@ export default function App() {
     // Don't connect here - let useEffect handle it after handlers are registered
   };
 
+  const handleModeSelect = (selectedMode) => {
+    setMode(selectedMode);
+    // If chat mode, connect to socket
+    if (selectedMode === 'chat' && !socket.connected) {
+      socket.connect();
+      socket.emit('set-username', username);
+    }
+  };
+
+  const handleExitPractice = () => {
+    setMode(''); // Back to mode selection
+  };
+
+  // Show username form if no username
   if (!username) {
     return <UsernameForm onSubmit={handleUsernameSubmit} onlineUsers={onlineUsers} />;
   }
 
+  // Show mode selector if username is set but no mode selected
+  if (!mode) {
+    return <ModeSelector username={username} onlineUsers={onlineUsers} onSelectMode={handleModeSelect} />;
+  }
+
+  // Show practice mode
+  if (mode === 'practice') {
+    return <PracticeMode username={username} onExit={handleExitPractice} settings={settings} />;
+  }
+
+  // Continue with chat mode (existing code)
   return (
     <>
     <div className="app-container">

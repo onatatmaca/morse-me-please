@@ -1,0 +1,146 @@
+/* SCROLLABLE wrapper */
+.mode-selector-page {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #1a1a1a;
+}
+
+.mode-content {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: 100%;
+}
+
+.mode-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.mode-header h1 {
+  color: #39d353;
+  font-size: 36px;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.mode-header p {
+  color: #999;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.online-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(57, 211, 83, 0.1);
+  border: 1px solid rgba(57, 211, 83, 0.3);
+  border-radius: 20px;
+  color: #39d353;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #39d353;
+  box-shadow: 0 0 8px #39d353;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.mode-cards {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mode-card {
+  flex: 1;
+  min-width: 280px;
+  max-width: 320px;
+  background: linear-gradient(145deg, #262626, #1a1a1a);
+  border: 2px solid #333;
+  border-radius: 20px;
+  padding: 40px 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.mode-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.practice-card:hover {
+  border-color: #3498db;
+  box-shadow: 0 12px 30px rgba(52, 152, 219, 0.3);
+}
+
+.chat-card:hover {
+  border-color: #39d353;
+  box-shadow: 0 12px 30px rgba(57, 211, 83, 0.3);
+}
+
+.card-icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+}
+
+.mode-card h2 {
+  color: #e5e5e5;
+  font-size: 26px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.mode-card p {
+  color: #999;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .mode-content {
+    padding: 30px 16px;
+  }
+
+  .mode-header h1 {
+    font-size: 28px;
+  }
+
+  .mode-header p {
+    font-size: 16px;
+  }
+
+  .mode-cards {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .mode-card {
+    min-width: 100%;
+    padding: 32px 24px;
+  }
+
+  .card-icon {
+    font-size: 48px;
+  }
+
+  .mode-card h2 {
+    font-size: 22px;
+  }
+}
