@@ -115,9 +115,9 @@
     }
     </script>
   </head>
-  <body>
+  <body style="margin: 0; padding: 0; background-color: #0a0a0a; color: #e5e5e5;">
     <!-- Pre-render SEO Content (visible before React loads) -->
-    <div id="seo-content" style="font-family: Monaco, monospace; background: #0a0a0a; color: #e5e5e5; padding: 60px 20px; max-width: 900px; margin: 0 auto; line-height: 1.8;">
+    <div id="seo-content" style="display: none; font-family: Monaco, monospace; background: #0a0a0a; color: #e5e5e5; padding: 60px 20px; max-width: 900px; margin: 0 auto; line-height: 1.8;">
       <header style="text-align: center; margin-bottom: 40px;">
         <h1 style="font-size: 42px; color: #39d353; margin-bottom: 15px; text-shadow: 0 0 20px rgba(57, 211, 83, 0.5);">Morse Me Please</h1>
         <h2 style="font-size: 24px; color: #5b9aff; font-weight: normal; margin-bottom: 25px;">Real-Time Morse Code Chat Platform</h2>
@@ -193,6 +193,16 @@
         </p>
       </footer>
     </div>
+
+    <!-- Show SEO content for slow connections/bots, hide on fast React load -->
+    <script>
+      setTimeout(function() {
+        var seoContent = document.getElementById('seo-content');
+        if (seoContent && seoContent.style.display === 'none') {
+          seoContent.style.display = 'block';
+        }
+      }, 200);
+    </script>
 
     <!-- Noscript Fallback with SEO Content -->
     <noscript>
