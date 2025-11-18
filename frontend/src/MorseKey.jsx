@@ -178,7 +178,8 @@ const MorseKey = forwardRef(({
       stopTone(); // Stop internal tone
     }
 
-    onSignal(signal);
+    // Send signal without playing extra sound (continuous tone already played)
+    onSignal(signal, false);
 
     setIsPressed(false);
     setPressProgress(0);

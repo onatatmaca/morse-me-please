@@ -289,7 +289,8 @@ export default function App() {
       // Stop tone when spacebar is released (like a real CW key)
       stopMyMorseTone();
 
-      handleMorseSignal(signal);
+      // Send signal without playing extra sound (continuous tone already played)
+      handleMorseSignal(signal, false);
       keyPressStart.current = null;
     }
   };
@@ -485,7 +486,7 @@ export default function App() {
     return minutes > 0 ? Math.round(words / minutes) : 0;
   };
 
-  const handleMorseSignal = (signal) => {
+  const handleMorseSignal = (signal, playSound = true) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
       const now = Date.now();
@@ -494,11 +495,6 @@ export default function App() {
 
       // Emit typing event to partner
       socket.emit('typing');
-    }
-
-    // Trigger visual feedback on the button
-    if (morseKeyRef.current) {
-      morseKeyRef.current.triggerPress(signal);
     }
 
     // Trigger visual feedback on two-circle buttons (for keyboard input)
@@ -519,8 +515,10 @@ export default function App() {
       return newMessage;
     });
 
-    // Play own morse sound
-    playMyMorseSound(signal === 'dash');
+    // Play own morse sound only if requested (skip for continuous tone mode - single circle/spacebar)
+    if (playSound) {
+      playMyMorseSound(signal === 'dash');
+    }
 
     lastSignalTime.current = Date.now();
 
