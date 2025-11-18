@@ -12,9 +12,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++
+
 # Install server dependencies
 COPY server/package*.json ./
 RUN npm ci --only=production
+
+# Remove build dependencies to keep image small
+RUN apk del python3 make g++
 
 # Copy server code
 COPY server/ ./
