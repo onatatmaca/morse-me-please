@@ -45,11 +45,9 @@ const sanitizeMorseCode = (morse) => {
   let sanitized = morse.replace(/<[^>]*>/g, '');
 
   // Morse code should only contain: dots (·), dashes (−, -, —), spaces, and pipe (|) for word separator
-  // Allow common dash variants and normalize them
-  sanitized = sanitized.replace(/[\u2010-\u2015]/g, '-'); // Normalize various dashes to hyphen
-
-  // Keep only valid morse characters: dot (·), dash (-), space, pipe (|)
-  sanitized = sanitized.replace(/[^·\-\s|]/g, '');
+  // Keep only valid morse characters: dot (·), dash (− or -), space, pipe (|)
+  // Note: Frontend uses '−' (minus sign U+2212) for dash, not '-' (hyphen-minus U+002D)
+  sanitized = sanitized.replace(/[^·−\-\s|]/g, '');
 
   // Limit length to prevent abuse (max 10000 characters)
   return sanitized.substring(0, 10000);
