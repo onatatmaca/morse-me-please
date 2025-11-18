@@ -6,7 +6,6 @@ import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
 import MorseHelper, { translateMorse } from './MorseHelper';
 import SettingsPanel from './SettingsPanel';
-import AdminDashboard from './AdminDashboard';
 import './App.css';
 
 const DEFAULT_SETTINGS = {
@@ -22,11 +21,6 @@ const DEFAULT_SETTINGS = {
 };
 
 export default function App() {
-  // Check if we're on the admin route
-  if (window.location.pathname === '/admin') {
-    return <AdminDashboard />;
-  }
-
   const [username, setUsername] = useState('');
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState('');
