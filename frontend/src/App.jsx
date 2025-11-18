@@ -370,6 +370,12 @@ export default function App() {
       setOnlineUsers(count);
     };
 
+    const handleUsernameError = (error) => {
+      alert(`Username Error: ${error}`);
+      setUsername(''); // Reset to show username form again
+      socket.disconnect();
+    };
+
     socket.on('connect', handleConnect);
     socket.on('waiting', handleWaiting);
     socket.on('paired', handlePaired);
@@ -378,6 +384,7 @@ export default function App() {
     socket.on('morse-message-complete', handleMessageComplete);
     socket.on('partner-disconnected', handlePartnerDisconnected);
     socket.on('user-count', handleUserCount);
+    socket.on('username-error', handleUsernameError);
 
     return () => {
       socket.off('connect', handleConnect);
@@ -388,6 +395,7 @@ export default function App() {
       socket.off('morse-message-complete', handleMessageComplete);
       socket.off('partner-disconnected', handlePartnerDisconnected);
       socket.off('user-count', handleUserCount);
+      socket.off('username-error', handleUsernameError);
     };
   }, []); // Empty dependency - handlers use refs for current values, so no need to re-register
 

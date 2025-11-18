@@ -171,14 +171,31 @@ io.on('connection', (socket) => {
   });
 
   socket.on('set-username', (username) => {
-    socket.username = username;
+    // Validate username
+    if (!username || typeof username !== 'string') {
+      socket.emit('username-error', 'Invalid username');
+      return;
+    }
+
+    // Trim and validate length (max 20 characters)
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length === 0) {
+      socket.emit('username-error', 'Username cannot be empty');
+      return;
+    }
+    if (trimmedUsername.length > 20) {
+      socket.emit('username-error', 'Username must be 20 characters or less');
+      return;
+    }
+
+    socket.username = trimmedUsername;
     const ipAddress = getClientIp(socket);
 
     // Create database session
     try {
-      const sessionId = db.createSession(socket.id, username, ipAddress);
+      const sessionId = db.createSession(socket.id, trimmedUsername, ipAddress);
       socket.sessionId = sessionId;
-      console.log(`📝 User ${socket.id} set username: ${username} (IP: ${ipAddress}, Session: ${sessionId})`);
+      console.log(`📝 User ${socket.id} set username: ${trimmedUsername} (IP: ${ipAddress}, Session: ${sessionId})`);
     } catch (error) {
       console.error('Error creating session:', error);
     }
