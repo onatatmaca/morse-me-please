@@ -178,8 +178,9 @@ const MorseKey = forwardRef(({
       stopTone(); // Stop internal tone
     }
 
-    // Send signal without playing extra sound (continuous tone already played)
-    onSignal(signal, false);
+    // Send signal without playing extra sound or showing extra visual feedback
+    // (continuous tone already played, button already has press/release animation)
+    onSignal(signal, false, false);
 
     setIsPressed(false);
     setPressProgress(0);

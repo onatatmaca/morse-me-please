@@ -486,7 +486,7 @@ export default function App() {
     return minutes > 0 ? Math.round(words / minutes) : 0;
   };
 
-  const handleMorseSignal = (signal, playSound = true) => {
+  const handleMorseSignal = (signal, playSound = true, showVisualFeedback = true) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
       const now = Date.now();
@@ -497,14 +497,20 @@ export default function App() {
       socket.emit('typing');
     }
 
-    // Trigger visual feedback on two-circle buttons (for keyboard input)
-    if (settings.twoCircleMode) {
-      if (signal === 'dot' && dotButtonRef.current) {
-        dotButtonRef.current.classList.add('button-pressed');
-        setTimeout(() => dotButtonRef.current?.classList.remove('button-pressed'), 150);
-      } else if (signal === 'dash' && dashButtonRef.current) {
-        dashButtonRef.current.classList.add('button-pressed');
-        setTimeout(() => dashButtonRef.current?.classList.remove('button-pressed'), 150);
+    // Trigger visual feedback on buttons (for keyboard input)
+    if (showVisualFeedback) {
+      if (settings.twoCircleMode) {
+        // Two-circle mode: highlight the specific button
+        if (signal === 'dot' && dotButtonRef.current) {
+          dotButtonRef.current.classList.add('button-pressed');
+          setTimeout(() => dotButtonRef.current?.classList.remove('button-pressed'), 150);
+        } else if (signal === 'dash' && dashButtonRef.current) {
+          dashButtonRef.current.classList.add('button-pressed');
+          setTimeout(() => dashButtonRef.current?.classList.remove('button-pressed'), 150);
+        }
+      } else if (morseKeyRef.current) {
+        // Single circle mode: show press animation
+        morseKeyRef.current.triggerPress(signal);
       }
     }
 
