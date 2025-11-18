@@ -63,6 +63,16 @@
   transform: translateY(-2px);
 }
 
+.back-btn {
+  background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+  color: white;
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #95a5a6, #b4bcc2);
+  transform: translateY(-2px);
+}
+
 .countdown-badge {
   position: absolute;
   top: -8px;

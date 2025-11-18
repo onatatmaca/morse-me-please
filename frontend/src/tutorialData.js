@@ -18,26 +18,50 @@ export const TUTORIALS = [
   },
   {
     id: 3,
-    title: "Morse Code",
-    description: "Type MORSE CODE using two words",
-    targetText: "MORSE CODE",
-    targetMorse: "−− | −−− | ·−· | ··· | · | −·−· | −−− | −·· | ·",
-    hint: "Remember to pause longer between words to create | separator"
+    title: "Your Name",
+    description: "Practice typing a simple word: MORSE",
+    targetText: "MORSE",
+    targetMorse: "−− | −−− | ·−· | ··· | ·",
+    hint: "M = −−, O = −−−, R = ·−·, S = ···, E = ·"
   },
   {
     id: 4,
-    title: "Numbers 123",
-    description: "Practice typing numbers",
+    title: "Numbers 1-2-3",
+    description: "Type numbers in Morse code",
     targetText: "123",
     targetMorse: "·−−−− | ··−−− | ···−−",
-    hint: "1 = ·−−−−, 2 = ··−−−, 3 = ···−−"
+    hint: "Numbers start with dots then add dashes: 1 = ·−−−−, 2 = ··−−−, 3 = ···−−"
   },
   {
     id: 5,
     title: "Help Me",
-    description: "Type a simple message",
+    description: "Type a two-word message",
     targetText: "HELP ME",
     targetMorse: "···· | · | ·−·· | ·−−· | −− | ·",
-    hint: "Type each letter with pauses, longer pause between words"
+    hint: "Remember: pause longer between words to create | separator"
+  },
+  {
+    id: 6,
+    title: "Good Morning",
+    description: "Practice a friendly greeting",
+    targetText: "GOOD MORNING",
+    targetMorse: "−−· | −−− | −−− | −·· | −− | −−− | ·−· | −· | ·· | −· | −−·",
+    hint: "Take your time - accuracy is more important than speed!"
+  },
+  {
+    id: 7,
+    title: "Coffee Break",
+    description: "Type a longer word: COFFEE",
+    targetText: "COFFEE",
+    targetMorse: "−·−· | −−− | ··−· | ··−· | · | ·",
+    hint: "C = −·−·, O = −−−, F = ··−·, F = ··−·, E = ·, E = ·"
+  },
+  {
+    id: 8,
+    title: "Yes or No",
+    description: "Quick responses in Morse",
+    targetText: "YES NO",
+    targetMorse: "−·−− | · | ··· | −· | −−− ",
+    hint: "Y = −·−−, E = ·, S = ···, N = −·, O = −−−"
   }
 ];

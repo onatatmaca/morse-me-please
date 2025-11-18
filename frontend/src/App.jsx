@@ -699,11 +699,7 @@ export default function App() {
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
-    // If chat mode, connect to socket
-    if (selectedMode === 'chat' && !socket.connected) {
-      socket.connect();
-      socket.emit('set-username', username);
-    }
+    // Socket connection is handled by useEffect below
   };
 
   const handleExitPractice = () => {
@@ -722,7 +718,7 @@ export default function App() {
 
   // Show practice mode
   if (mode === 'practice') {
-    return <PracticeMode username={username} onExit={handleExitPractice} settings={settings} />;
+    return <PracticeMode username={username} onExit={handleExitPractice} />;
   }
 
   // Continue with chat mode (existing code)
@@ -874,6 +870,7 @@ export default function App() {
           <ControlPanel
             onDisconnect={handleDisconnect}
             onFindNew={handleFindNew}
+            onBack={handleExitPractice}
           />
 
           <MessageTranscript

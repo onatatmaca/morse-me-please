@@ -1,21 +1,29 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import MorseKey from './MorseKey';
+import SettingsPanel from './SettingsPanel';
 import { translateMorse } from './MorseHelper';
 import { TUTORIALS } from './tutorialData';
 import './PracticeMode.css';
 
-export default function PracticeMode({ username, onExit, settings: parentSettings }) {
+const DEFAULT_SETTINGS = {
+  wpm: 12,
+  submitDelay: 2500,
+  showLetters: true,
+  keyboardEnabled: true,
+  twoCircleMode: false,
+  myVolume: 0.3,
+  partnerVolume: 0.3,
+  myFrequency: 600,
+  partnerFrequency: 900
+};
+
+export default function PracticeMode({ username, onExit }) {
   const [selectedTutorial, setSelectedTutorial] = useState(null);
   const [myLiveMessage, setMyLiveMessage] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [settings] = useState(parentSettings || {
-    wpm: 12,
-    showLetters: true,
-    twoCircleMode: false,
-    myVolume: 0.3,
-    myFrequency: 600
-  });
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [showSettings, setShowSettings] = useState(false);
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
@@ -27,6 +35,11 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
   const dotButtonRef = useRef(null);
   const dashButtonRef = useRef(null);
   const isTouchDevice = useRef(false);
+  const keyPressStart = useRef(null);
+
+  // Refs for keyboard handlers (to avoid stale closures)
+  const handleMorseSignalRef = useRef(null);
+  const handleKeyPressRef = useRef(null);
 
   // Calculate timing from WPM
   const calculateTiming = (wpm) => {
@@ -49,7 +62,7 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
   }, []);
 
-  // Audio functions (same as in App.jsx)
+  // Audio functions
   const startMyMorseTone = () => {
     if (!audioContextRef.current || settings.myVolume === 0) return;
     if (myOscillatorRef.current) return;
@@ -190,6 +203,82 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
     }, timing.wordPause);
   };
 
+  // Update ref for keyboard handlers
+  handleMorseSignalRef.current = handleMorseSignal;
+
+  // Keyboard handlers
+  const handleKeyPress = (type) => {
+    if (type === 'start') {
+      keyPressStart.current = Date.now();
+      startMyMorseTone();
+      if (!settings.twoCircleMode && morseKeyRef.current) {
+        morseKeyRef.current.startPressAnimation();
+      }
+    } else if (type === 'end' && keyPressStart.current) {
+      const duration = Date.now() - keyPressStart.current;
+      const isDash = duration > timing.dashThreshold;
+      const signal = isDash ? 'dash' : 'dot';
+
+      stopMyMorseTone();
+      if (!settings.twoCircleMode && morseKeyRef.current) {
+        morseKeyRef.current.endPressAnimation();
+      }
+
+      handleMorseSignal(signal, false, false);
+      keyPressStart.current = null;
+    }
+  };
+
+  handleKeyPressRef.current = handleKeyPress;
+
+  // Keyboard event listener
+  useEffect(() => {
+    if (!settings.keyboardEnabled || !selectedTutorial) return;
+
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      // Direct input: Z=dot, X=dash, Left CTRL=dot, Right CTRL=dash
+      if (e.key === 'z' || e.key === 'Z' || e.code === 'ControlLeft') {
+        e.preventDefault();
+        if (!e.repeat && handleMorseSignalRef.current) {
+          handleMorseSignalRef.current('dot');
+        }
+      } else if (e.key === 'x' || e.key === 'X' || e.code === 'ControlRight') {
+        e.preventDefault();
+        if (!e.repeat && handleMorseSignalRef.current) {
+          handleMorseSignalRef.current('dash');
+        }
+      }
+      // Hold mode: Spacebar timing
+      else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        if (!e.repeat && handleKeyPressRef.current) {
+          handleKeyPressRef.current('start');
+        }
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        if (handleKeyPressRef.current) {
+          handleKeyPressRef.current('end');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [settings.keyboardEnabled, selectedTutorial]);
+
   const handleCircleButtonPress = (signal, e) => {
     if (e.type === 'touchstart') {
       e.preventDefault();
@@ -205,7 +294,6 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
     const userMorse = myLiveMessage.trim();
     const targetMorse = tutorial.targetMorse;
 
-    // Simple comparison - normalize spaces
     const normalizeSpaces = (str) => str.replace(/\s+/g, ' ').replace(/\s+\|\s+/g, ' | ').trim();
     const isMatch = normalizeSpaces(userMorse) === normalizeSpaces(targetMorse);
 
@@ -260,16 +348,23 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
     );
   }
 
-  // Practice Interface View (reuses existing components)
+  // Practice Interface View
   return (
     <div className="practice-mode-page">
       <div className="practice-interface">
-        {/* Header */}
+        {/* Header with Settings */}
         <div className="practice-interface-header">
           <button className="back-btn-small" onClick={handleBackToTutorials}>
-            ← Back to Tutorials
+            ← Back
           </button>
           <h2>{selectedTutorial.title}</h2>
+          <button
+            className="settings-btn-practice"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+          >
+            ⚙️
+          </button>
         </div>
 
         {/* Target Display */}
@@ -282,12 +377,17 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
 
         {/* Circle Mode Toggle */}
         <div className="input-mode-toggle">
-          <span className="toggle-label">
-            {settings.twoCircleMode ? 'Two Circles' : 'Single Circle'}
-          </span>
+          <button
+            className={`mode-toggle ${settings.twoCircleMode ? 'active' : ''}`}
+            onClick={() => setSettings({ ...settings, twoCircleMode: !settings.twoCircleMode })}
+          >
+            <div className="toggle-slider">
+              <span className="toggle-option">{settings.twoCircleMode ? 'Two Circles' : 'Single Circle'}</span>
+            </div>
+          </button>
         </div>
 
-        {/* Morse Key (REUSED from chat mode) */}
+        {/* Morse Key */}
         {!settings.twoCircleMode ? (
           <MorseKey
             ref={morseKeyRef}
@@ -326,13 +426,20 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
           </div>
         )}
 
-        {/* Live Translation Display (REUSED styling) */}
+        {/* Live Translation */}
         {settings.showLetters && myLiveMessage && (
           <div className="live-translation">
             <div className="morse-symbols">{myLiveMessage}</div>
             <div className="translated-text">
               {translateMorse(myLiveMessage)}
             </div>
+          </div>
+        )}
+
+        {/* Keyboard Hint */}
+        {settings.keyboardEnabled && (
+          <div className="keyboard-hint">
+            ⌨️ Z / Left CTRL = Dot (·) | X / Right CTRL = Dash (−) | Hold Spacebar (duration = dot/dash)
           </div>
         )}
 
@@ -380,6 +487,14 @@ export default function PracticeMode({ username, onExit, settings: parentSetting
             )}
           </div>
         )}
+
+        {/* Settings Panel */}
+        <SettingsPanel
+          settings={settings}
+          onSettingsChange={setSettings}
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+        />
       </div>
     </div>
   );
