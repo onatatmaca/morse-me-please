@@ -19,8 +19,8 @@
 }
 
 .login-logo {
-  width: 150px;
-  height: 150px;
+  width: auto;
+  height: 165px;
   margin: 0 auto 20px;
   filter: drop-shadow(0 0 20px rgba(57, 211, 83, 0.5));
   transition: filter 0.3s ease;

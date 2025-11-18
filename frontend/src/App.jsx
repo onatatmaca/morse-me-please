@@ -9,7 +9,7 @@ import SettingsPanel from './SettingsPanel';
 import './App.css';
 
 const DEFAULT_SETTINGS = {
-  wpm: 12,              // Morse speed (5-40 WPM) - Starting slower for beginners
+  wpm: 12,              // Morse speed (5-50 WPM) - Starting slower for beginners
   submitDelay: 2500,    // Auto-send delay in ms (1000-5000ms) - More time to compose
   showLetters: true,    // Show translation while typing
   keyboardEnabled: true,
@@ -46,15 +46,19 @@ export default function App() {
   const progressInterval = useRef(null); // Progress bar animation interval
   const isTouchDevice = useRef(false); // Track if we're using touch to prevent double events
 
-  // Calculate timing from WPM (simple formula)
+  // Calculate timing from WPM (optimized for high-speed dash input)
   const calculateTiming = (wpm) => {
     const timeUnit = 1200 / wpm;
+    const letterPause = timeUnit * 3;
+    // Dash threshold scales with WPM - at higher speeds, shorter hold needed
+    // Ensures users can input consecutive dashes without triggering letter spacing
+    const dashThreshold = Math.min(timeUnit * 2, letterPause * 0.4);
     return {
       timeUnit,
       dotLength: timeUnit,
       dashLength: timeUnit * 3,
-      dashThreshold: timeUnit * 2, // Midpoint between dot and dash
-      letterPause: timeUnit * 3,
+      dashThreshold, // Adaptive threshold for better high-speed performance
+      letterPause,
       wordPause: timeUnit * 7
     };
   };

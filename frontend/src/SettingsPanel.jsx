@@ -45,7 +45,7 @@ export default function SettingsPanel({
                     <input
                       type="range"
                       min="5"
-                      max="40"
+                      max="50"
                       step="1"
                       value={settings.wpm || 20}
                       onChange={(e) => handleNumericChange('wpm', e.target.value)}
@@ -136,7 +136,7 @@ export default function SettingsPanel({
                 <p><strong>Professional standards:</strong></p>
                 <p>• <strong>Beginner:</strong> 5-10 WPM</p>
                 <p>• <strong>Intermediate:</strong> 10-20 WPM</p>
-                <p>• <strong>Expert:</strong> 20-40 WPM</p>
+                <p>• <strong>Expert:</strong> 20-50 WPM</p>
               </div>
             </div>
           </div>
