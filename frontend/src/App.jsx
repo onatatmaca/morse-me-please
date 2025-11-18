@@ -281,6 +281,10 @@ export default function App() {
       keyPressStart.current = Date.now();
       // Start tone immediately when spacebar is pressed (like a real CW key)
       startMyMorseTone();
+      // Start visual press animation in single circle mode
+      if (!settings.twoCircleMode && morseKeyRef.current) {
+        morseKeyRef.current.startPressAnimation();
+      }
     } else if (type === 'end' && keyPressStart.current) {
       const duration = Date.now() - keyPressStart.current;
       const isDash = duration > timing.dashThreshold;
@@ -288,9 +292,14 @@ export default function App() {
 
       // Stop tone when spacebar is released (like a real CW key)
       stopMyMorseTone();
+      // End visual press animation in single circle mode
+      if (!settings.twoCircleMode && morseKeyRef.current) {
+        morseKeyRef.current.endPressAnimation();
+      }
 
-      // Send signal without playing extra sound (continuous tone already played)
-      handleMorseSignal(signal, false);
+      // Send signal without playing extra sound or showing extra visual feedback
+      // (continuous tone already played, animation already handled above)
+      handleMorseSignal(signal, false, false);
       keyPressStart.current = null;
     }
   };
@@ -486,7 +495,7 @@ export default function App() {
     return minutes > 0 ? Math.round(words / minutes) : 0;
   };
 
-  const handleMorseSignal = (signal, playSound = true) => {
+  const handleMorseSignal = (signal, playSound = true, showVisualFeedback = true) => {
     // Start timer on first signal
     if (!currentMessageStartTime) {
       const now = Date.now();
@@ -497,14 +506,20 @@ export default function App() {
       socket.emit('typing');
     }
 
-    // Trigger visual feedback on two-circle buttons (for keyboard input)
-    if (settings.twoCircleMode) {
-      if (signal === 'dot' && dotButtonRef.current) {
-        dotButtonRef.current.classList.add('button-pressed');
-        setTimeout(() => dotButtonRef.current?.classList.remove('button-pressed'), 150);
-      } else if (signal === 'dash' && dashButtonRef.current) {
-        dashButtonRef.current.classList.add('button-pressed');
-        setTimeout(() => dashButtonRef.current?.classList.remove('button-pressed'), 150);
+    // Trigger visual feedback on buttons (for keyboard input)
+    if (showVisualFeedback) {
+      if (settings.twoCircleMode) {
+        // Two-circle mode: highlight the specific button
+        if (signal === 'dot' && dotButtonRef.current) {
+          dotButtonRef.current.classList.add('button-pressed');
+          setTimeout(() => dotButtonRef.current?.classList.remove('button-pressed'), 150);
+        } else if (signal === 'dash' && dashButtonRef.current) {
+          dashButtonRef.current.classList.add('button-pressed');
+          setTimeout(() => dashButtonRef.current?.classList.remove('button-pressed'), 150);
+        }
+      } else if (morseKeyRef.current) {
+        // Single circle mode: show press animation
+        morseKeyRef.current.triggerPress(signal);
       }
     }
 
