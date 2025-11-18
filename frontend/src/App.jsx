@@ -6,6 +6,7 @@ import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
 import MorseHelper, { translateMorse } from './MorseHelper';
 import SettingsPanel from './SettingsPanel';
+import AdminDashboard from './AdminDashboard';
 import './App.css';
 
 const DEFAULT_SETTINGS = {
@@ -21,6 +22,11 @@ const DEFAULT_SETTINGS = {
 };
 
 export default function App() {
+  // Check if we're on the admin route
+  if (window.location.pathname === '/admin') {
+    return <AdminDashboard />;
+  }
+
   const [username, setUsername] = useState('');
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState('');
@@ -530,10 +536,14 @@ export default function App() {
     const endTime = Date.now();
     const wpm = calculateWPM(messageToSend, startTime, endTime);
 
+    // Translate morse to text for database logging
+    const translatedText = translateMorse(messageToSend);
+
     // Emit typing-stop and send message to partner
     socket.emit('typing-stop');
     socket.emit('morse-message-complete', {
       message: messageToSend,
+      translatedText: translatedText, // For admin panel logging
       wpm: wpm,
       timestamp: endTime
     });
