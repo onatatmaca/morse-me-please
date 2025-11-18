@@ -13,6 +13,7 @@ const adminRoutes = require('./admin-routes'); // Admin API routes
 const cookieParser = require('cookie-parser'); // Cookie parsing for sessions
 const sanitize = require('./sanitize'); // Input sanitization
 const rateLimit = require('./socket-rate-limit'); // Socket rate limiting
+const securityLogger = require('./security-logger'); // Security event logging
 
 const app = express();
 const isDev = process.env.NODE_ENV !== 'production';
