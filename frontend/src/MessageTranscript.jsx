@@ -9,7 +9,8 @@ export default function MessageTranscript({
   currentUser,
   partnerUsername,
   currentMessageStartTime,
-  partnerMessageStartTime
+  partnerMessageStartTime,
+  partnerTyping
 }) {
   const transcriptEndRef = useRef(null);
   const [showTranslation, setShowTranslation] = useState(false);
@@ -85,8 +86,8 @@ export default function MessageTranscript({
           );
         })}
 
-        {/* Partner typing indicator */}
-        {partnerLiveMessage && (
+        {/* Partner typing indicator (before message arrives) */}
+        {partnerTyping && !partnerLiveMessage && (
           <div className="chat-message partner-message typing-indicator-message">
             <div className="message-bubble live-message">
               <div className="typing-indicator">
@@ -96,10 +97,26 @@ export default function MessageTranscript({
               </div>
               <div className="typing-text">
                 {partnerUsername} is typing...
-                {partnerLiveWPM > 0 && (
-                  <span className="live-wpm"> ({partnerLiveWPM} WPM)</span>
-                )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Partner message being played back */}
+        {partnerLiveMessage && (
+          <div className="chat-message partner-message playback-indicator-message">
+            <div className="message-bubble live-message">
+              <div className="message-content">{partnerLiveMessage}</div>
+              {showTranslation && (
+                <div className="message-translation">
+                  {translateMorse(partnerLiveMessage)}
+                </div>
+              )}
+              {partnerLiveWPM > 0 && (
+                <div className="message-meta">
+                  <span className="message-wpm">▶ {partnerLiveWPM} WPM</span>
+                </div>
+              )}
             </div>
           </div>
         )}

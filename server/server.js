@@ -202,6 +202,20 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('typing', () => {
+    const partnerId = activePairs.get(socket.id);
+    if (partnerId) {
+      io.to(partnerId).emit('typing');
+    }
+  });
+
+  socket.on('typing-stop', () => {
+    const partnerId = activePairs.get(socket.id);
+    if (partnerId) {
+      io.to(partnerId).emit('typing-stop');
+    }
+  });
+
   socket.on('find-new-partner', () => {
     const partnerId = activePairs.get(socket.id);
     if (partnerId) {
