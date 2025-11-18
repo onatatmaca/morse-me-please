@@ -88,7 +88,7 @@ export default function App() {
   const myLiveMessageRef = useRef('');
   const currentMessageStartTimeRef = useRef(null);
 
-  // Start continuous tone for user's morse code
+  // Start continuous tone for user's morse code (for hold-based single circle mode)
   const startMyMorseTone = () => {
     if (!audioContextRef.current || settings.myVolume === 0) return;
     if (myOscillatorRef.current) return; // Already playing
@@ -122,7 +122,7 @@ export default function App() {
     myGainNodeRef.current = gainNode;
   };
 
-  // Stop continuous tone for user's morse code
+  // Stop continuous tone for user's morse code (for hold-based single circle mode)
   const stopMyMorseTone = () => {
     if (!myOscillatorRef.current || !myGainNodeRef.current) return;
 
@@ -140,19 +140,17 @@ export default function App() {
     myGainNodeRef.current = null;
   };
 
-  // Play sound for user's own morse code (for instant dot/dash and for callback from MorseKey)
-  const playMyMorseSound = (isDashOrStart) => {
-    // If called with boolean true/false, it's a start/stop command from MorseKey
-    if (isDashOrStart === true) {
+  // Handler for MorseKey continuous tone (separate from instant beeps to avoid conflicts)
+  const handleMorseKeyTone = (start) => {
+    if (start) {
       startMyMorseTone();
-      return;
-    } else if (isDashOrStart === false) {
+    } else {
       stopMyMorseTone();
-      return;
     }
+  };
 
-    // Otherwise it's an instant dot/dash beep
-    const isDash = isDashOrStart;
+  // Play instant beep sound for user's own morse code (for two-circle mode and keyboard shortcuts)
+  const playMyMorseSound = (isDash) => {
     if (!audioContextRef.current || settings.myVolume === 0) return;
 
     const ctx = audioContextRef.current;
@@ -580,7 +578,7 @@ export default function App() {
   // Update ref so keyboard handlers always call the current version
   handleMorseSignalRef.current = handleMorseSignal;
 
-  // Handler for two-circle button press (start tone)
+  // Handler for two-circle button press (instant beep and send signal)
   const handleCircleButtonPress = (signal, e) => {
     // If this is a touch event, mark that we're using touch and prevent mouse events
     if (e.type === 'touchstart') {
@@ -594,25 +592,8 @@ export default function App() {
       }
     }
 
-    // Start tone immediately when button is pressed (like a real CW key)
-    startMyMorseTone();
-  };
-
-  // Handler for two-circle button release (stop tone and send signal)
-  const handleCircleButtonRelease = (signal, e) => {
-    // Prevent double-firing with touch events
-    if (e.type === 'touchend') {
-      e.preventDefault();
-    } else if (e.type === 'mouseup' || e.type === 'mouseleave') {
-      if (isTouchDevice.current) {
-        return; // Ignore mouse event after touch
-      }
-    }
-
-    // Stop tone when button is released (like a real CW key)
-    stopMyMorseTone();
-
-    // Send the signal (dot or dash)
+    // Two-circle mode: instant beep on press (not continuous tone)
+    // Send the signal immediately - this will play the sound and handle everything
     handleMorseSignal(signal);
   };
 
@@ -776,7 +757,7 @@ export default function App() {
               disabled={false}
               volume={settings.myVolume}
               dashThreshold={timing.dashThreshold}
-              onPlaySound={playMyMorseSound}
+              onPlaySound={handleMorseKeyTone}
             />
           ) : (
             <div className="two-circle-container">
@@ -787,17 +768,8 @@ export default function App() {
                   if (e.button !== 0) return; // Only left click
                   handleCircleButtonPress('dot', e);
                 }}
-                onMouseUp={(e) => {
-                  handleCircleButtonRelease('dot', e);
-                }}
-                onMouseLeave={(e) => {
-                  handleCircleButtonRelease('dot', e);
-                }}
                 onTouchStart={(e) => {
                   handleCircleButtonPress('dot', e);
-                }}
-                onTouchEnd={(e) => {
-                  handleCircleButtonRelease('dot', e);
                 }}
                 disabled={false}
               >
@@ -811,17 +783,8 @@ export default function App() {
                   if (e.button !== 0) return; // Only left click
                   handleCircleButtonPress('dash', e);
                 }}
-                onMouseUp={(e) => {
-                  handleCircleButtonRelease('dash', e);
-                }}
-                onMouseLeave={(e) => {
-                  handleCircleButtonRelease('dash', e);
-                }}
                 onTouchStart={(e) => {
                   handleCircleButtonPress('dash', e);
-                }}
-                onTouchEnd={(e) => {
-                  handleCircleButtonRelease('dash', e);
                 }}
                 disabled={false}
               >
