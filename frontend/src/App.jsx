@@ -38,6 +38,7 @@ export default function App() {
   const [onlineUsers, setOnlineUsers] = useState(0); // Total online users
   const [playbackQueue, setPlaybackQueue] = useState([]); // Queue for partner messages to play
   const [isPlayingBack, setIsPlayingBack] = useState(false); // Whether playback is in progress
+  const [partnerTyping, setPartnerTyping] = useState(false); // Whether partner is currently typing
 
   const lastSignalTime = useRef(null);
   const letterSpaceTimeout = useRef(null);
@@ -47,6 +48,8 @@ export default function App() {
   const autoSendTimeout = useRef(null); // Auto-send after submit delay
   const progressInterval = useRef(null); // Progress bar animation interval
   const isTouchDevice = useRef(false); // Track if we're using touch to prevent double events
+  const dotButtonRef = useRef(null); // Ref for dot button in two-circle mode
+  const dashButtonRef = useRef(null); // Ref for dash button in two-circle mode
 
   // Calculate timing from WPM (optimized for high-speed dash input)
   const calculateTiming = (wpm) => {
@@ -330,7 +333,18 @@ export default function App() {
       setPartnerMessageStartTime(null);
     };
 
+    const handleTyping = () => {
+      setPartnerTyping(true);
+    };
+
+    const handleTypingStop = () => {
+      setPartnerTyping(false);
+    };
+
     const handleMessageComplete = (data) => {
+      // Partner stopped typing - message is coming
+      setPartnerTyping(false);
+
       // Add message to playback queue
       setPlaybackQueue(prev => [...prev, {
         from: data.from,
@@ -359,6 +373,8 @@ export default function App() {
     socket.on('connect', handleConnect);
     socket.on('waiting', handleWaiting);
     socket.on('paired', handlePaired);
+    socket.on('typing', handleTyping);
+    socket.on('typing-stop', handleTypingStop);
     socket.on('morse-message-complete', handleMessageComplete);
     socket.on('partner-disconnected', handlePartnerDisconnected);
     socket.on('user-count', handleUserCount);
@@ -367,6 +383,8 @@ export default function App() {
       socket.off('connect', handleConnect);
       socket.off('waiting', handleWaiting);
       socket.off('paired', handlePaired);
+      socket.off('typing', handleTyping);
+      socket.off('typing-stop', handleTypingStop);
       socket.off('morse-message-complete', handleMessageComplete);
       socket.off('partner-disconnected', handlePartnerDisconnected);
       socket.off('user-count', handleUserCount);
@@ -397,11 +415,25 @@ export default function App() {
       const now = Date.now();
       setCurrentMessageStartTime(now);
       currentMessageStartTimeRef.current = now;
+
+      // Emit typing event to partner
+      socket.emit('typing');
     }
 
     // Trigger visual feedback on the button
     if (morseKeyRef.current) {
       morseKeyRef.current.triggerPress(signal);
+    }
+
+    // Trigger visual feedback on two-circle buttons (for keyboard input)
+    if (settings.twoCircleMode) {
+      if (signal === 'dot' && dotButtonRef.current) {
+        dotButtonRef.current.classList.add('button-pressed');
+        setTimeout(() => dotButtonRef.current?.classList.remove('button-pressed'), 150);
+      } else if (signal === 'dash' && dashButtonRef.current) {
+        dashButtonRef.current.classList.add('button-pressed');
+        setTimeout(() => dashButtonRef.current?.classList.remove('button-pressed'), 150);
+      }
     }
 
     const symbol = signal === 'dot' ? '·' : '−';
@@ -498,7 +530,8 @@ export default function App() {
     const endTime = Date.now();
     const wpm = calculateWPM(messageToSend, startTime, endTime);
 
-    // Send to partner
+    // Emit typing-stop and send message to partner
+    socket.emit('typing-stop');
     socket.emit('morse-message-complete', {
       message: messageToSend,
       wpm: wpm,
@@ -647,6 +680,7 @@ export default function App() {
           ) : (
             <div className="two-circle-container">
               <button
+                ref={dotButtonRef}
                 className="circle-button dot-button"
                 onMouseDown={(e) => {
                   if (e.button !== 0) return; // Only left click
@@ -661,6 +695,7 @@ export default function App() {
                 <span className="circle-symbol">·</span>
               </button>
               <button
+                ref={dashButtonRef}
                 className="circle-button dash-button"
                 onMouseDown={(e) => {
                   if (e.button !== 0) return; // Only left click
@@ -726,6 +761,7 @@ export default function App() {
             partnerUsername={partnerUsername}
             currentMessageStartTime={currentMessageStartTime}
             partnerMessageStartTime={partnerMessageStartTime}
+            partnerTyping={partnerTyping}
           />
         </div>
       ) : (

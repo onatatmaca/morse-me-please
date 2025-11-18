@@ -798,7 +798,8 @@ html, body, #root {
   transform: scale(1.05);
 }
 
-.circle-button:not(:disabled):active {
+.circle-button:not(:disabled):active,
+.circle-button.button-pressed {
   transform: scale(0.92);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4),
               inset 0 8px 16px rgba(0, 0, 0, 0.4);
