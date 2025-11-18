@@ -30,6 +30,88 @@ export default function SettingsPanel({
             </div>
 
             <div className="settings-content">
+              {/* ========== VOLUME CONTROLS ========== */}
+              <div className="setting-group">
+                <h4>🔊 Volume Controls</h4>
+
+                <div className="setting-item">
+                  <label>
+                    My Morse Code Volume
+                    <span className="setting-hint">Volume for your own morse sounds</span>
+                  </label>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={settings.myVolume || 0.3}
+                      onChange={(e) => handleNumericChange('myVolume', e.target.value)}
+                    />
+                    <span className="setting-value">{Math.round((settings.myVolume || 0.3) * 100)}%</span>
+                  </div>
+                </div>
+
+                <div className="setting-item">
+                  <label>
+                    Partner's Morse Code Volume
+                    <span className="setting-hint">Volume for partner's morse sounds</span>
+                  </label>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={settings.partnerVolume || 0.3}
+                      onChange={(e) => handleNumericChange('partnerVolume', e.target.value)}
+                    />
+                    <span className="setting-value">{Math.round((settings.partnerVolume || 0.3) * 100)}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ========== FREQUENCY/SOUND CONTROLS ========== */}
+              <div className="setting-group">
+                <h4>🎹 Sound Frequency</h4>
+
+                <div className="setting-item">
+                  <label>
+                    My Morse Code Frequency
+                    <span className="setting-hint">Tone frequency for your own morse code</span>
+                  </label>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="300"
+                      max="1200"
+                      step="50"
+                      value={settings.myFrequency || 600}
+                      onChange={(e) => handleNumericChange('myFrequency', e.target.value)}
+                    />
+                    <span className="setting-value">{settings.myFrequency || 600} Hz</span>
+                  </div>
+                </div>
+
+                <div className="setting-item">
+                  <label>
+                    Partner's Morse Code Frequency
+                    <span className="setting-hint">Tone frequency for partner's morse code</span>
+                  </label>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="300"
+                      max="1200"
+                      step="50"
+                      value={settings.partnerFrequency || 900}
+                      onChange={(e) => handleNumericChange('partnerFrequency', e.target.value)}
+                    />
+                    <span className="setting-value">{settings.partnerFrequency || 900} Hz</span>
+                  </div>
+                </div>
+              </div>
+
               {/* ========== MORSE SPEED ========== */}
               <div className="setting-group">
                 <h4>🎵 Morse Speed</h4>
@@ -130,10 +212,13 @@ export default function SettingsPanel({
 
               {/* ========== INFO ========== */}
               <div className="setting-info">
-                <p><strong>💡 About WPM-based timing:</strong></p>
-                <p>This app uses International Morse Code standards. All timings are calculated from your WPM setting.</p>
+                <p><strong>💡 How Messaging Works:</strong></p>
+                <p>You type morse code locally (no real-time transmission). When you finish typing and the message auto-sends, it's sent to your partner who hears it played back character-by-character at their WPM speed with their chosen frequency.</p>
                 <p></p>
-                <p><strong>Professional standards:</strong></p>
+                <p><strong>🎧 Audio Controls:</strong></p>
+                <p>Set separate volumes and frequencies for your own morse code and your partner's. This helps you distinguish who's sending!</p>
+                <p></p>
+                <p><strong>Professional WPM standards:</strong></p>
                 <p>• <strong>Beginner:</strong> 5-10 WPM</p>
                 <p>• <strong>Intermediate:</strong> 10-20 WPM</p>
                 <p>• <strong>Expert:</strong> 20-50 WPM</p>
