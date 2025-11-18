@@ -8,3 +8,6 @@ npm-debug.log
 dist
 frontend/node_modules
 frontend/dist
+server/node_modules
+server/morse.db
+server/morse.db-journal
