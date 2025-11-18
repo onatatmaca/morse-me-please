@@ -11,6 +11,7 @@ const path = require('path');
 const db = require('./db'); // Database logging
 const adminRoutes = require('./admin-routes'); // Admin API routes
 const cookieParser = require('cookie-parser'); // Cookie parsing for sessions
+const sanitize = require('./sanitize'); // Input sanitization
 
 const app = express();
 const isDev = process.env.NODE_ENV !== 'production';
@@ -171,31 +172,28 @@ io.on('connection', (socket) => {
   });
 
   socket.on('set-username', (username) => {
-    // Validate username
-    if (!username || typeof username !== 'string') {
-      socket.emit('username-error', 'Invalid username');
+    // Sanitize username to remove HTML tags and XSS vectors
+    const sanitizedUsername = sanitize.sanitizeUsername(username);
+
+    // Validate sanitized username
+    if (!sanitizedUsername || sanitizedUsername.length === 0) {
+      socket.emit('username-error', 'Invalid username. Please use alphanumeric characters only.');
       return;
     }
 
-    // Trim and validate length (max 20 characters)
-    const trimmedUsername = username.trim();
-    if (trimmedUsername.length === 0) {
-      socket.emit('username-error', 'Username cannot be empty');
-      return;
-    }
-    if (trimmedUsername.length > 20) {
+    if (sanitizedUsername.length > 20) {
       socket.emit('username-error', 'Username must be 20 characters or less');
       return;
     }
 
-    socket.username = trimmedUsername;
+    socket.username = sanitizedUsername;
     const ipAddress = getClientIp(socket);
 
     // Create database session
     try {
-      const sessionId = db.createSession(socket.id, trimmedUsername, ipAddress);
+      const sessionId = db.createSession(socket.id, sanitizedUsername, ipAddress);
       socket.sessionId = sessionId;
-      console.log(`📝 User ${socket.id} set username: ${trimmedUsername} (IP: ${ipAddress}, Session: ${sessionId})`);
+      console.log(`📝 User ${socket.id} set username: ${sanitizedUsername} (IP: ${ipAddress}, Session: ${sessionId})`);
     } catch (error) {
       console.error('Error creating session:', error);
     }
@@ -247,22 +245,33 @@ io.on('connection', (socket) => {
     if (partnerId) {
       const partnerSocket = io.sockets.sockets.get(partnerId);
 
+      // Sanitize message data to prevent XSS
+      const sanitizedMessage = sanitize.sanitizeMorseCode(data.message);
+      const sanitizedTranslatedText = sanitize.sanitizeText(data.translatedText || '');
+      const sanitizedWPM = sanitize.sanitizeWPM(data.wpm);
+
+      // Validate that message is not empty after sanitization
+      if (!sanitizedMessage) {
+        console.log(`⚠️ Empty message after sanitization from ${socket.username}`);
+        return;
+      }
+
       // Log message to database
       if (partnerSocket && partnerSocket.username) {
         try {
           const senderIp = getClientIp(socket);
           const receiverIp = getClientIp(partnerSocket);
 
-          // Log the message
+          // Log the sanitized message
           db.logMessage(
             socket.id,
             socket.username,
             senderIp,
             partnerSocket.username,
             receiverIp,
-            data.message,
-            data.translatedText || '',  // Morse code translated to text
-            data.wpm
+            sanitizedMessage,
+            sanitizedTranslatedText,
+            sanitizedWPM
           );
 
           // Increment message counts
@@ -273,15 +282,15 @@ io.on('connection', (socket) => {
         }
       }
 
-      // Broadcast complete message to partner
+      // Broadcast sanitized message to partner
       io.to(partnerId).emit('morse-message-complete', {
-        message: data.message,
+        message: sanitizedMessage,
         from: socket.username,
-        wpm: data.wpm,
+        wpm: sanitizedWPM,
         timestamp: data.timestamp
       });
 
-      console.log(`📨 Message from ${socket.username}: ${data.message} (${data.wpm} WPM)`);
+      console.log(`📨 Message from ${socket.username}: ${sanitizedMessage.substring(0, 50)}... (${sanitizedWPM} WPM)`);
     }
   });
 

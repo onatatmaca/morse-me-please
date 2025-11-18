@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const auth = require('./admin-auth');
+const sanitize = require('./sanitize');
 
 // ========== MIDDLEWARE ==========
 
@@ -185,14 +186,14 @@ router.get('/live', authMiddleware, (req, res) => {
 // Get sessions (paginated)
 router.get('/sessions', authMiddleware, (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = parseInt(req.query.offset) || 0;
+    const limit = sanitize.sanitizeNumber(req.query.limit, 1, 1000, 50);
+    const offset = sanitize.sanitizeNumber(req.query.offset, 0, 1000000, 0);
 
     const filters = {};
-    if (req.query.username) filters.username = req.query.username;
-    if (req.query.ip) filters.ip = req.query.ip;
-    if (req.query.dateFrom) filters.dateFrom = req.query.dateFrom;
-    if (req.query.dateTo) filters.dateTo = req.query.dateTo;
+    if (req.query.username) filters.username = sanitize.sanitizeUsername(req.query.username);
+    if (req.query.ip) filters.ip = sanitize.sanitizeText(req.query.ip);
+    if (req.query.dateFrom) filters.dateFrom = sanitize.sanitizeText(req.query.dateFrom);
+    if (req.query.dateTo) filters.dateTo = sanitize.sanitizeText(req.query.dateTo);
 
     const sessions = db.getSessions(limit, offset, filters);
     const total = db.getSessionCount(filters);
@@ -220,14 +221,14 @@ router.get('/sessions', authMiddleware, (req, res) => {
 // Get messages (paginated)
 router.get('/messages', authMiddleware, (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = parseInt(req.query.offset) || 0;
+    const limit = sanitize.sanitizeNumber(req.query.limit, 1, 1000, 50);
+    const offset = sanitize.sanitizeNumber(req.query.offset, 0, 1000000, 0);
 
     const filters = {};
-    if (req.query.username) filters.username = req.query.username;
-    if (req.query.search) filters.search = req.query.search;
-    if (req.query.dateFrom) filters.dateFrom = req.query.dateFrom;
-    if (req.query.dateTo) filters.dateTo = req.query.dateTo;
+    if (req.query.username) filters.username = sanitize.sanitizeUsername(req.query.username);
+    if (req.query.search) filters.search = sanitize.sanitizeText(req.query.search);
+    if (req.query.dateFrom) filters.dateFrom = sanitize.sanitizeText(req.query.dateFrom);
+    if (req.query.dateTo) filters.dateTo = sanitize.sanitizeText(req.query.dateTo);
 
     const messages = db.getMessages(limit, offset, filters);
     const total = db.getMessageCount(filters);
