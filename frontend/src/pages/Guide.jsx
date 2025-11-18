@@ -12,8 +12,14 @@ function Guide() {
           <h2>Getting Started</h2>
           <p>
             Welcome to Morse Me Please! This guide will help you start communicating through Morse code
-            in minutes. Our platform is designed to be intuitive, whether you're a complete beginner
-            or an experienced Morse code operator.
+            in minutes. Our platform offers two ways to learn and practice:
+          </p>
+          <ul className="feature-list">
+            <li><strong>🎓 Practice Mode:</strong> Learn Morse code solo with 15 progressive lessons, interactive exercises, and real-time feedback. Perfect for beginners!</li>
+            <li><strong>💬 Chat Mode:</strong> Connect instantly with other users for real-time Morse code conversations.</li>
+          </ul>
+          <p>
+            Whether you're a complete beginner or an experienced Morse code operator, we've got you covered!
           </p>
         </section>
 
@@ -223,11 +229,67 @@ function Guide() {
         </section>
 
         <section className="page-section">
-          <h2>Ready to Chat?</h2>
+          <h2>🎓 Practice Mode: Learn Solo</h2>
           <p>
-            Now that you know how to use Morse Me Please, you're ready to start chatting! Enter
-            the chat room, get matched with a partner, and begin your Morse code journey. Remember,
-            everyone starts as a beginner - practice makes perfect!
+            <strong>New to Morse code?</strong> Our Practice Mode offers a complete learning curriculum
+            with 15 progressive lessons designed using the Koch Method - a proven technique used by
+            professional Morse code training programs worldwide.
+          </p>
+
+          <h3>How Practice Mode Works</h3>
+          <p>
+            Choose Practice Mode from the main screen to access:
+          </p>
+          <ul className="feature-list">
+            <li><strong>15 Progressive Lessons:</strong> Start with E and T, gradually building to the complete Morse code set (letters, numbers, punctuation)</li>
+            <li><strong>Interactive Exercises:</strong> Listen to characters, type morse code, practice words, and take speed challenges</li>
+            <li><strong>Instant Feedback:</strong> See your accuracy percentage, WPM speed, and mistakes after each exercise</li>
+            <li><strong>Progress Tracking:</strong> Your progress is saved locally - pick up where you left off</li>
+            <li><strong>Character Mastery:</strong> Track which characters you've mastered and which need more practice</li>
+            <li><strong>Achievements:</strong> Unlock achievements as you progress through the curriculum</li>
+          </ul>
+
+          <h3>The 15-Lesson Curriculum</h3>
+          <ul className="feature-list">
+            <li><strong>Lessons 1-3 (Beginner):</strong> E, T, I, A, N, M, S, O - Learn the basics and spell SOS!</li>
+            <li><strong>Lessons 4-5:</strong> H, U, V, F, L, R, W, J, P - Common letters for building words</li>
+            <li><strong>Lessons 6-7 (Intermediate):</strong> B, C, D, G, K, Q, X, Y, Z - Complete the alphabet</li>
+            <li><strong>Lesson 8:</strong> Numbers 0-9 with their special patterns</li>
+            <li><strong>Lessons 9-12 (Advanced):</strong> Punctuation marks, conversation practice, complete character set</li>
+            <li><strong>Lessons 13-15 (Expert):</strong> Speed training (15-25 WPM), Farnsworth method, final mastery test</li>
+          </ul>
+
+          <h3>Exercise Types</h3>
+          <p>
+            Each lesson includes a variety of exercise types to reinforce learning:
+          </p>
+          <ul className="feature-list">
+            <li><strong>Learn:</strong> Introduction to new characters with audio playback</li>
+            <li><strong>Listen:</strong> Hear morse code and identify the character</li>
+            <li><strong>Type:</strong> See a character and type its morse code</li>
+            <li><strong>Word:</strong> Practice complete words and sentences</li>
+            <li><strong>Speed:</strong> Timed challenges to improve your WPM</li>
+            <li><strong>Mixed:</strong> Random practice with all learned characters</li>
+          </ul>
+        </section>
+
+        <section className="page-section">
+          <h2>Ready to Start?</h2>
+          <p>
+            <strong>Complete Beginners:</strong> Start with Practice Mode! Work through the 15 lessons
+            at your own pace. You'll learn every character systematically and build real skills.
+          </p>
+          <p>
+            <strong>Have Some Experience?</strong> Jump into Chat Mode to practice with real people,
+            or use Practice Mode to sharpen specific skills and increase your speed.
+          </p>
+          <p>
+            You can switch between Practice and Chat Mode anytime. Your progress in Practice Mode
+            is saved automatically, so you can always pick up where you left off!
+          </p>
+          <p>
+            Remember: Everyone starts as a beginner, and practice makes perfect! Good luck on your
+            Morse code journey! 📡
           </p>
         </section>
       </div>
