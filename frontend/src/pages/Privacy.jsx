@@ -15,7 +15,7 @@ function Privacy() {
         <section className="page-section">
           <h2>Overview</h2>
           <p>
-            Morse Me Please ("we", "our", or "us") is committed to protecting your privacy.
+            We are committed to protecting your privacy.
             This Privacy Policy explains how we collect, use, and safeguard information when
             you use our real-time Morse code chat platform.
           </p>
