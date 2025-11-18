@@ -281,6 +281,10 @@ export default function App() {
       keyPressStart.current = Date.now();
       // Start tone immediately when spacebar is pressed (like a real CW key)
       startMyMorseTone();
+      // Start visual press animation in single circle mode
+      if (!settings.twoCircleMode && morseKeyRef.current) {
+        morseKeyRef.current.startPressAnimation();
+      }
     } else if (type === 'end' && keyPressStart.current) {
       const duration = Date.now() - keyPressStart.current;
       const isDash = duration > timing.dashThreshold;
@@ -288,9 +292,14 @@ export default function App() {
 
       // Stop tone when spacebar is released (like a real CW key)
       stopMyMorseTone();
+      // End visual press animation in single circle mode
+      if (!settings.twoCircleMode && morseKeyRef.current) {
+        morseKeyRef.current.endPressAnimation();
+      }
 
-      // Send signal without playing extra sound (continuous tone already played)
-      handleMorseSignal(signal, false);
+      // Send signal without playing extra sound or showing extra visual feedback
+      // (continuous tone already played, animation already handled above)
+      handleMorseSignal(signal, false, false);
       keyPressStart.current = null;
     }
   };

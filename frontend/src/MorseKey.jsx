@@ -212,6 +212,35 @@ const MorseKey = forwardRef(({
         setPressProgress(0);
       }, isDash ? 250 : 120);
     },
+    // For spacebar: start press animation with progress bar
+    startPressAnimation: () => {
+      if (disabled) return;
+
+      setIsPressed(true);
+      pressStartTime.current = Date.now();
+      setPressProgress(0);
+      addRipple();
+
+      // Start progress bar animation
+      progressInterval.current = setInterval(() => {
+        const elapsed = Date.now() - pressStartTime.current;
+        const progress = Math.min((elapsed / dashThreshold) * 100, 100);
+        setPressProgress(progress);
+      }, 10);
+    },
+    // For spacebar: end press animation
+    endPressAnimation: () => {
+      if (disabled) return;
+
+      setIsPressed(false);
+      setPressProgress(0);
+      pressStartTime.current = null;
+
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+    },
     playSound: (isDash) => {
       // Exposed method for two-circle buttons to play sound
       if (onPlaySound) {
