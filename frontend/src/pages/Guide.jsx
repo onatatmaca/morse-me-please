@@ -87,15 +87,20 @@ function Guide() {
         <section className="page-section">
           <h2>Step 4: Reading Messages</h2>
           <p>
-            When your partner sends you Morse code, you'll see and hear the dots and dashes in
-            real-time. The platform provides:
+            When your partner sends you Morse code, you'll see and hear the dots and dashes played back
+            character-by-character with synchronized audio. The platform provides:
           </p>
           <ul className="feature-list">
             <li><strong>Visual Feedback:</strong> Dots and dashes appear as they're sent</li>
-            <li><strong>Audio Feedback:</strong> Different tones for your messages vs. partner's messages</li>
+            <li><strong>Audio Feedback:</strong> Different audio frequencies for your messages vs. partner's messages</li>
             <li><strong>Live Translation:</strong> Instant text conversion of incoming Morse code</li>
+            <li><strong>Typing Indicators:</strong> See when your partner is composing a message</li>
             <li><strong>Message History:</strong> Scroll through your conversation transcript</li>
           </ul>
+          <p>
+            Messages are transmitted instantly, then played back character-by-character at your preferred
+            speed (WPM), allowing you to hear and learn the Morse patterns at a comfortable pace.
+          </p>
         </section>
 
         <section className="page-section">
@@ -118,10 +123,19 @@ function Guide() {
             timing. A longer delay gives you more time to compose your message.
           </p>
 
-          <h3>Volume Control</h3>
+          <h3>Volume and Audio Controls</h3>
           <p>
-            Use the volume button (🔊) to adjust the audio feedback level or mute it entirely if
-            you prefer silent practice.
+            Customize your audio experience with independent controls:
+          </p>
+          <ul className="feature-list">
+            <li><strong>My Morse Code Volume:</strong> Adjust the volume for your own morse sounds</li>
+            <li><strong>Partner Morse Code Volume:</strong> Adjust the volume for your partner's morse sounds</li>
+            <li><strong>My Morse Code Frequency:</strong> Change the audio tone (pitch) of your morse code (200-1000 Hz)</li>
+            <li><strong>Partner Morse Code Frequency:</strong> Change the audio tone (pitch) of partner's morse code (200-1000 Hz)</li>
+          </ul>
+          <p>
+            Different frequencies make it easy to distinguish who's sending. You can also mute either
+            channel entirely if you prefer silent practice or want to focus on only one audio stream.
           </p>
         </section>
 
@@ -152,9 +166,11 @@ function Guide() {
             to traditional turn-based communication systems.
           </p>
           <p>
-            You'll see visual indicators when both users are typing at the same time. Don't worry
-            - the system handles simultaneous transmission gracefully, and each message is clearly
-            attributed to its sender.
+            You'll see real-time typing indicators showing when your partner is composing a message.
+            Messages are transmitted instantly, then played back character-by-character with synchronized
+            audio at the receiver's end. Each partner's morse code has a distinct audio frequency,
+            making it easy to distinguish who's sending. The system handles simultaneous transmission
+            gracefully, and each message is clearly attributed to its sender.
           </p>
         </section>
 
@@ -172,7 +188,9 @@ function Guide() {
           <p>
             Morse Me Please works perfectly on smartphones and tablets. The interface automatically
             adapts to smaller screens, and touch controls are optimized for mobile devices. The
-            two-circle mode is particularly effective on mobile, providing large, easy-to-tap buttons.
+            single-circle mode (default) provides a large, easy-to-tap button that works great on
+            touchscreens. Advanced users can also switch to keyboard mode or two-circle mode for
+            more precise control.
           </p>
         </section>
 
