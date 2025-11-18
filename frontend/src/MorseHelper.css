@@ -116,24 +116,6 @@ iframe[src*="buymeacoffee"] {
   background: #1a1a1a;
 }
 
-.morse-section {
-  margin-bottom: 20px;
-}
-
-.morse-section:last-child {
-  margin-bottom: 0;
-}
-
-.morse-section-title {
-  color: #39d353;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Monaco', monospace;
-  margin: 0 0 12px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #333;
-}
-
 .timing-info {
   background: #0f0f0f;
   border: 1px solid #333;
