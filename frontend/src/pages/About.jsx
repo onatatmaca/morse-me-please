@@ -68,9 +68,10 @@ function About() {
           </p>
           <p>
             Our platform features live Morse-to-text translation, adjustable speed settings (WPM),
-            multiple input modes, and instant partner matching. Whether you're tapping on your
-            keyboard, using our single-circle interface, or the advanced two-circle mode, we provide
-            the tools you need to master Morse code communication.
+            customizable audio tones, multiple input modes, and instant partner matching. Whether you're
+            tapping on your keyboard, using our single-circle interface, or the advanced two-circle mode,
+            we provide the tools you need to master Morse code communication. Real-time typing indicators
+            let you know when your partner is composing a message, creating an authentic conversational experience.
           </p>
         </section>
 
@@ -83,9 +84,10 @@ function About() {
             real-world Morse code communication.
           </p>
           <p>
-            Every beep, every dash, every dot is transmitted in real-time, creating an authentic
-            Morse code experience. Our live translation feature helps beginners learn by showing
-            the text equivalent of each Morse sequence as it's being sent.
+            Messages are transmitted instantly, then played back character-by-character with synchronized
+            audio at the receiver's end. Each partner's morse code has a distinct audio frequency, making
+            it easy to distinguish who's sending. Our live translation feature helps beginners learn by
+            showing the text equivalent of each Morse sequence as it's decoded.
           </p>
         </section>
 

@@ -9,7 +9,7 @@ function Privacy() {
         <h1 className="page-title">Privacy Policy</h1>
 
         <p className="page-intro">
-          <em>Last updated: November 15, 2025</em>
+          <em>Last updated: November 18, 2025</em>
         </p>
 
         <section className="page-section">
@@ -20,8 +20,8 @@ function Privacy() {
             you use our real-time Morse code chat platform.
           </p>
           <p>
-            We believe in transparency and minimal data collection. We only collect what is
-            necessary to provide our service and never sell your personal information.
+            We believe in transparency and responsible data handling. We only collect what is
+            necessary to provide and improve our service and never sell your personal information.
           </p>
         </section>
 
@@ -36,31 +36,27 @@ function Privacy() {
           <ul className="feature-list">
             <li>Chosen by you at the time of entry</li>
             <li>Visible to your chat partners</li>
-            <li>Not stored permanently on our servers</li>
-            <li>Removed when you disconnect or close the browser</li>
+            <li>Stored temporarily for service analytics</li>
           </ul>
 
-          <h3>Chat Messages</h3>
-          <p>
-            Morse code messages transmitted through our platform are:
-          </p>
-          <ul className="feature-list">
-            <li>Sent in real-time between matched users</li>
-            <li>Not stored on our servers</li>
-            <li>Not logged or recorded</li>
-            <li>Only visible to you and your chat partner</li>
-            <li>Deleted when either user disconnects</li>
-          </ul>
-
-          <h3>Technical Information</h3>
+          <h3>Connection Data</h3>
           <p>
             We automatically collect certain technical information for service operation:
           </p>
           <ul className="feature-list">
-            <li>Connection status for real-time matching</li>
-            <li>Browser type for compatibility purposes</li>
-            <li>Device type (desktop/mobile) for interface optimization</li>
-            <li>Session duration for user count statistics</li>
+            <li>Connection status and session duration</li>
+            <li>Browser type and device information</li>
+            <li>Session timing and activity patterns</li>
+          </ul>
+
+          <h3>Technical Information</h3>
+          <p>
+            Standard web server data is collected to maintain service quality and security:
+          </p>
+          <ul className="feature-list">
+            <li>Network routing information</li>
+            <li>Service access timestamps</li>
+            <li>Performance metrics and error logs</li>
           </ul>
         </section>
 
@@ -98,7 +94,7 @@ function Privacy() {
 
           <h3>Preference Storage</h3>
           <p>
-            Your settings (WPM, volume, input mode) are stored in your browser's local storage
+            Your settings (WPM, volume, frequency, input mode) are stored in your browser's local storage
             to remember your preferences between sessions. This data never leaves your device.
           </p>
 
@@ -121,15 +117,16 @@ function Privacy() {
             <li>Improve platform performance and user experience</li>
             <li>Understand usage patterns to guide feature development</li>
             <li>Ensure platform stability and troubleshoot technical issues</li>
+            <li>Monitor service health and prevent abuse</li>
           </ul>
           <p>
             <strong>We never:</strong>
           </p>
           <ul className="feature-list">
             <li>Sell or rent your information to third parties</li>
-            <li>Store your chat messages permanently</li>
             <li>Use your information for advertising purposes</li>
             <li>Share your information except as required by law</li>
+            <li>Retain data longer than necessary for service operation</li>
           </ul>
         </section>
 
@@ -141,8 +138,9 @@ function Privacy() {
           <ul className="feature-list">
             <li>HTTPS encryption for all data transmission</li>
             <li>Secure WebSocket connections for real-time chat</li>
-            <li>No permanent storage of chat content</li>
+            <li>Database encryption and access controls</li>
             <li>Regular security updates and monitoring</li>
+            <li>Automated cleanup of old records</li>
           </ul>
           <p>
             While we strive to protect your information, no internet transmission is 100% secure.
@@ -194,8 +192,8 @@ function Privacy() {
             <li>Access any personal information we hold about you</li>
             <li>Request deletion of your information</li>
             <li>Opt out of analytics tracking</li>
-            <li>Use the platform anonymously (choose any username)</li>
-            <li>Disconnect at any time, which removes your session data</li>
+            <li>Use the platform with any username (including pseudonyms)</li>
+            <li>Disconnect at any time</li>
           </ul>
         </section>
 
@@ -211,14 +209,35 @@ function Privacy() {
         <section className="page-section">
           <h2>Data Retention</h2>
           <p>
-            We practice minimal data retention:
+            We practice responsible data retention to balance service improvement with privacy:
           </p>
           <ul className="feature-list">
-            <li><strong>Usernames:</strong> Deleted immediately when you disconnect</li>
-            <li><strong>Chat messages:</strong> Never stored, exist only in real-time transmission</li>
-            <li><strong>Session data:</strong> Cleared when you close your browser</li>
-            <li><strong>Analytics data:</strong> Retained by Google Analytics per their data retention policy</li>
+            <li><strong>Service Logs:</strong> Retained for up to 30 days for quality assurance and troubleshooting</li>
+            <li><strong>Analytics Data:</strong> Retained by Google Analytics per their data retention policy</li>
+            <li><strong>User Preferences:</strong> Stored locally in your browser indefinitely (under your control)</li>
           </ul>
+          <p>
+            Operational data is automatically purged after the retention period to minimize data storage.
+            This automated cleanup process runs daily to ensure compliance with our retention policies.
+          </p>
+        </section>
+
+        <section className="page-section">
+          <h2>Service Analytics and Improvement</h2>
+          <p>
+            To maintain and improve Morse Me Please, we collect aggregated usage metrics including:
+          </p>
+          <ul className="feature-list">
+            <li>Platform performance indicators (response times, error rates)</li>
+            <li>Feature usage statistics (which input modes are most popular, average WPM)</li>
+            <li>Session patterns (peak usage times, session durations)</li>
+            <li>Communication metadata for service optimization</li>
+          </ul>
+          <p>
+            This data helps us understand how the platform is used, identify technical issues,
+            optimize matching algorithms, and plan new features. Analytics are conducted on
+            aggregated, de-identified data wherever possible.
+          </p>
         </section>
 
         <section className="page-section">
@@ -233,9 +252,10 @@ function Privacy() {
         <section className="page-section">
           <h2>Summary</h2>
           <p>
-            In short: Morse Me Please collects minimal information (username, connection data),
-            doesn't store your conversations, uses Google Analytics for anonymous statistics, and
-            never sells your data. We're committed to your privacy and security.
+            In short: Morse Me Please collects standard web service data (usernames, connection information,
+            usage metrics) to provide and improve our platform. We retain operational data for up to 30 days,
+            use Google Analytics for anonymous statistics, and never sell your data. We're committed to
+            responsible data handling and your privacy.
           </p>
         </section>
       </div>
