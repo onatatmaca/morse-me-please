@@ -5,9 +5,17 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const compression = require('compression');
 const path = require('path');
+const db = require('./db'); // Database logging
+const adminRoutes = require('./admin-routes'); // Admin API routes
+const cookieParser = require('cookie-parser'); // Cookie parsing for sessions
 
 const app = express();
 const isDev = process.env.NODE_ENV !== 'production';
+
+// Parse JSON bodies
+app.use(express.json());
+// Parse cookies
+app.use(cookieParser());
 
 // Enable Gzip/Brotli compression for all responses
 app.use(compression({
@@ -107,14 +115,42 @@ const broadcastUserCount = () => {
   io.emit('user-count', userCount);
 };
 
+// Helper to get client IP address
+const getClientIp = (socket) => {
+  const forwarded = socket.handshake.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return socket.handshake.address || 'unknown';
+};
+
+// Track concurrent user peaks for statistics
+let peakConcurrentUsers = 0;
+const updatePeakUsers = () => {
+  const currentUsers = io.sockets.sockets.size;
+  if (currentUsers > peakConcurrentUsers) {
+    peakConcurrentUsers = currentUsers;
+  }
+};
+
 io.on('connection', (socket) => {
   console.log('✅ User connected:', socket.id);
+
+  // Track peak concurrent users
+  updatePeakUsers();
 
   // Broadcast updated user count
   broadcastUserCount();
 
   socket.on('disconnect', () => {
     console.log('❌ User disconnected:', socket.id);
+
+    // End database session
+    try {
+      db.endSession(socket.id);
+    } catch (error) {
+      console.error('Error ending session:', error);
+    }
 
     if (waitingUser === socket.id) {
       waitingUser = null;
@@ -133,7 +169,16 @@ io.on('connection', (socket) => {
 
   socket.on('set-username', (username) => {
     socket.username = username;
-    console.log(`📝 User ${socket.id} set username: ${username}`);
+    const ipAddress = getClientIp(socket);
+
+    // Create database session
+    try {
+      const sessionId = db.createSession(socket.id, username, ipAddress);
+      socket.sessionId = sessionId;
+      console.log(`📝 User ${socket.id} set username: ${username} (IP: ${ipAddress}, Session: ${sessionId})`);
+    } catch (error) {
+      console.error('Error creating session:', error);
+    }
 
     if (waitingUser && waitingUser !== socket.id) {
       const partnerSocket = io.sockets.sockets.get(waitingUser);
@@ -180,6 +225,34 @@ io.on('connection', (socket) => {
   socket.on('morse-message-complete', (data) => {
     const partnerId = activePairs.get(socket.id);
     if (partnerId) {
+      const partnerSocket = io.sockets.sockets.get(partnerId);
+
+      // Log message to database
+      if (partnerSocket && partnerSocket.username) {
+        try {
+          const senderIp = getClientIp(socket);
+          const receiverIp = getClientIp(partnerSocket);
+
+          // Log the message
+          db.logMessage(
+            socket.id,
+            socket.username,
+            senderIp,
+            partnerSocket.username,
+            receiverIp,
+            data.message,
+            data.translatedText || '',  // Morse code translated to text
+            data.wpm
+          );
+
+          // Increment message counts
+          db.incrementMessageCount(socket.id, 'sent');
+          db.incrementMessageCount(partnerId, 'received');
+        } catch (error) {
+          console.error('Error logging message:', error);
+        }
+      }
+
       // Broadcast complete message to partner
       io.to(partnerId).emit('morse-message-complete', {
         message: data.message,
@@ -256,6 +329,14 @@ io.on('connection', (socket) => {
 
 // DUPLEX MODE: No inactivity checking needed - both users can send anytime
 
+// ========== ADMIN API ROUTES ==========
+// Make io and activePairs available to admin routes
+app.set('io', io);
+app.set('activePairs', activePairs);
+
+// Mount admin routes
+app.use('/api/admin', adminRoutes);
+
 // Serve robots.txt and sitemap.xml with proper MIME types
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
@@ -289,8 +370,40 @@ if (!isDev) {
   });
 }
 
+// ========== DATABASE CLEANUP & MAINTENANCE ==========
+
+// Run daily cleanup at midnight
+const runDailyCleanup = () => {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0); // Next midnight
+
+  const msUntilMidnight = midnight - now;
+
+  // Schedule first cleanup at midnight
+  setTimeout(() => {
+    console.log('🗑️  Running daily cleanup...');
+    db.deleteOldRecords(30); // Delete records older than 30 days
+
+    // Then run every 24 hours
+    setInterval(() => {
+      console.log('🗑️  Running daily cleanup...');
+      db.deleteOldRecords(30);
+    }, 24 * 60 * 60 * 1000); // 24 hours
+  }, msUntilMidnight);
+
+  console.log(`⏰ Daily cleanup scheduled for ${midnight.toLocaleString()}`);
+};
+
+// Start cleanup scheduler
+runDailyCleanup();
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
   console.log(`📡 Environment: ${isDev ? 'development' : 'production'}`);
+
+  // Log database stats on startup
+  const dbSize = db.getDatabaseSize();
+  console.log(`💾 Database size: ${dbSize.megabytes} MB`);
 });

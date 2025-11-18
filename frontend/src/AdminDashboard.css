@@ -1,0 +1,618 @@
+/* ========== ADMIN DASHBOARD STYLES ========== */
+
+/* Loading Screen */
+.admin-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #00ff00;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #111;
+  border-top: 4px solid #00ff00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== LOGIN SCREEN ========== */
+.admin-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  padding: 20px;
+}
+
+.login-container {
+  background: #111;
+  border: 2px solid #00ff00;
+  border-radius: 10px;
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+}
+
+.login-container h1 {
+  color: #00ff00;
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: 'Monaco', monospace;
+}
+
+.login-subtitle {
+  color: #888;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #00ff00;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.form-group input {
+  background: #1a1a1a;
+  border: 1px solid #00ff00;
+  border-radius: 5px;
+  padding: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-family: 'Monaco', monospace;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.login-btn {
+  background: #00ff00;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.login-btn:hover {
+  background: #00dd00;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.login-error {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff0000;
+  border-radius: 5px;
+  padding: 10px;
+  color: #ff6666;
+  font-size: 14px;
+}
+
+.attempts-warning {
+  margin-top: 8px;
+  color: #ffaa00;
+  font-weight: bold;
+}
+
+.login-footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+}
+
+.login-footer .warning {
+  color: #ffaa00;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+/* ========== DASHBOARD LAYOUT ========== */
+.admin-dashboard {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: #fff;
+  font-family: 'Monaco', monospace;
+}
+
+/* Header */
+.admin-header {
+  background: #111;
+  border-bottom: 2px solid #00ff00;
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left h1 {
+  color: #00ff00;
+  margin: 0 0 5px 0;
+  font-size: 24px;
+}
+
+.header-left p {
+  color: #888;
+  margin: 0;
+  font-size: 14px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.username {
+  color: #00ff00;
+  font-size: 14px;
+}
+
+.logout-btn {
+  background: #ff3333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #ff0000;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+/* Tabs Navigation */
+.admin-tabs {
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  display: flex;
+  padding: 0 20px;
+  overflow-x: auto;
+}
+
+.admin-tabs .tab {
+  background: transparent;
+  border: none;
+  color: #888;
+  padding: 15px 25px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.admin-tabs .tab:hover {
+  color: #00ff00;
+  background: rgba(0, 255, 0, 0.05);
+}
+
+.admin-tabs .tab.active {
+  color: #00ff00;
+  border-bottom-color: #00ff00;
+  background: rgba(0, 255, 0, 0.1);
+}
+
+/* Main Content */
+.admin-content {
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ========== COMMON COMPONENTS ========== */
+
+/* Stat Cards */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: #111;
+  border: 1px solid #00ff00;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  border-color: #00ff00;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.stat-card h3,
+.stat-card h4 {
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  color: #00ff00;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* Data Tables */
+.data-table {
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  border-collapse: collapse;
+}
+
+.data-table thead {
+  background: #1a1a1a;
+  border-bottom: 2px solid #00ff00;
+}
+
+.data-table th {
+  color: #00ff00;
+  text-align: left;
+  padding: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.data-table td {
+  color: #ccc;
+  padding: 12px 15px;
+  border-bottom: 1px solid #222;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(0, 255, 0, 0.05);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table code {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 2px 6px;
+  color: #00ff00;
+  font-size: 12px;
+}
+
+.data-table em {
+  color: #888;
+  font-style: italic;
+}
+
+.no-data {
+  text-align: center !important;
+  color: #666 !important;
+  font-style: italic;
+  padding: 30px !important;
+}
+
+/* Status Badges */
+.status-chatting {
+  background: #00ff00;
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-waiting {
+  background: #ffaa00;
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filters input {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 10px 15px;
+  color: #fff;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filters input:focus {
+  outline: none;
+  border-color: #00ff00;
+}
+
+.filters button {
+  background: #00ff00;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.filters button:hover {
+  background: #00dd00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+  padding: 20px;
+}
+
+.pagination button {
+  background: #111;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #00ff00;
+  color: #000;
+}
+
+.pagination button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #888;
+}
+
+/* ========== TAB-SPECIFIC STYLES ========== */
+
+/* Tab Headers */
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tab-header h2 {
+  color: #00ff00;
+  margin: 0;
+}
+
+.refresh-btn {
+  background: #111;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #00ff00;
+  color: #000;
+}
+
+/* Messages Table */
+.messages-table .morse-code {
+  font-family: 'Monaco', monospace;
+  color: #00ff00;
+  font-size: 13px;
+}
+
+.messages-table .translated-text {
+  color: #fff;
+  font-weight: bold;
+}
+
+/* IP Tab */
+.usernames-list {
+  color: #00ff00;
+  font-size: 13px;
+}
+
+/* Settings Tab */
+.settings-section {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+.settings-section h3 {
+  color: #00ff00;
+  margin: 0 0 15px 0;
+}
+
+.settings-section p {
+  color: #ccc;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.settings-section pre {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 15px;
+  color: #00ff00;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+.settings-section code {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 3px 8px;
+  color: #00ff00;
+}
+
+.cleanup-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.cleanup-controls label {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cleanup-controls input {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 8px 12px;
+  color: #fff;
+  width: 80px;
+  text-align: center;
+}
+
+.delete-btn {
+  background: #ff3333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background: #ff0000;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 50px;
+  color: #888;
+  font-style: italic;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .header-right {
+    flex-direction: column;
+  }
+
+  .admin-tabs {
+    padding: 0 10px;
+  }
+
+  .admin-tabs .tab {
+    padding: 12px 15px;
+    font-size: 12px;
+  }
+
+  .admin-content {
+    padding: 15px;
+  }
+
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table {
+    font-size: 12px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters input {
+    min-width: 100%;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cleanup-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

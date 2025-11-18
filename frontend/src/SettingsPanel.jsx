@@ -78,73 +78,83 @@ export default function SettingsPanel({
                 </div>
               </div>
 
-              {/* ========== AUDIO CONTROLS (COMPACT) ========== */}
+              {/* ========== AUDIO CONTROLS ========== */}
               <div className="setting-group">
                 <h4>🔊 Audio Controls</h4>
 
-                <div className="setting-item compact-control">
-                  <label className="compact-label">
-                    Volume: My Morse | Partner's Morse
+                <div className="setting-item">
+                  <label>
+                    My Morse Code Volume
+                    <span className="setting-hint">Volume for your own morse sounds</span>
                   </label>
-                  <div className="dual-control">
-                    <div className="control-half">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={settings.myVolume || 0.3}
-                        onChange={(e) => handleNumericChange('myVolume', e.target.value)}
-                      />
-                      <span className="setting-value">{Math.round((settings.myVolume || 0.3) * 100)}%</span>
-                    </div>
-                    <div className="control-separator">|</div>
-                    <div className="control-half">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={settings.partnerVolume || 0.3}
-                        onChange={(e) => handleNumericChange('partnerVolume', e.target.value)}
-                      />
-                      <span className="setting-value">{Math.round((settings.partnerVolume || 0.3) * 100)}%</span>
-                    </div>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={settings.myVolume || 0.3}
+                      onChange={(e) => handleNumericChange('myVolume', e.target.value)}
+                    />
+                    <span className="setting-value">{Math.round((settings.myVolume || 0.3) * 100)}%</span>
                   </div>
                 </div>
 
-                <div className="setting-item compact-control">
-                  <label className="compact-label">
-                    Frequency: My Morse | Partner's Morse
+                <div className="setting-item">
+                  <label>
+                    Partner's Morse Code Volume
+                    <span className="setting-hint">Volume for your partner's morse sounds</span>
                   </label>
-                  <div className="dual-control">
-                    <div className="control-half">
-                      <input
-                        type="range"
-                        min="300"
-                        max="1200"
-                        step="50"
-                        value={settings.myFrequency || 600}
-                        onChange={(e) => handleNumericChange('myFrequency', e.target.value)}
-                      />
-                      <span className="setting-value">{settings.myFrequency || 600} Hz</span>
-                    </div>
-                    <div className="control-separator">|</div>
-                    <div className="control-half">
-                      <input
-                        type="range"
-                        min="300"
-                        max="1200"
-                        step="50"
-                        value={settings.partnerFrequency || 900}
-                        onChange={(e) => handleNumericChange('partnerFrequency', e.target.value)}
-                      />
-                      <span className="setting-value">{settings.partnerFrequency || 900} Hz</span>
-                    </div>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={settings.partnerVolume || 0.3}
+                      onChange={(e) => handleNumericChange('partnerVolume', e.target.value)}
+                    />
+                    <span className="setting-value">{Math.round((settings.partnerVolume || 0.3) * 100)}%</span>
                   </div>
                 </div>
 
-                <div className="setting-info compact-info">
+                <div className="setting-item">
+                  <label>
+                    My Morse Code Frequency
+                    <span className="setting-hint">Frequency for your own morse sounds</span>
+                  </label>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="300"
+                      max="1200"
+                      step="50"
+                      value={settings.myFrequency || 600}
+                      onChange={(e) => handleNumericChange('myFrequency', e.target.value)}
+                    />
+                    <span className="setting-value">{settings.myFrequency || 600} Hz</span>
+                  </div>
+                </div>
+
+                <div className="setting-item">
+                  <label>
+                    Partner's Morse Code Frequency
+                    <span className="setting-hint">Frequency for your partner's morse sounds</span>
+                  </label>
+                  <div className="setting-control">
+                    <input
+                      type="range"
+                      min="300"
+                      max="1200"
+                      step="50"
+                      value={settings.partnerFrequency || 900}
+                      onChange={(e) => handleNumericChange('partnerFrequency', e.target.value)}
+                    />
+                    <span className="setting-value">{settings.partnerFrequency || 900} Hz</span>
+                  </div>
+                </div>
+
+                <div className="setting-info">
                   <strong>💡 Tip:</strong> Different volumes and frequencies help you distinguish between your morse and your partner's morse!
                 </div>
               </div>
