@@ -73,6 +73,8 @@ export default function App() {
 
   // Audio context for two-circle buttons
   const audioContextRef = useRef(null);
+  const myOscillatorRef = useRef(null);
+  const myGainNodeRef = useRef(null);
 
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -86,8 +88,71 @@ export default function App() {
   const myLiveMessageRef = useRef('');
   const currentMessageStartTimeRef = useRef(null);
 
-  // Play sound for user's own morse code
-  const playMyMorseSound = (isDash) => {
+  // Start continuous tone for user's morse code
+  const startMyMorseTone = () => {
+    if (!audioContextRef.current || settings.myVolume === 0) return;
+    if (myOscillatorRef.current) return; // Already playing
+
+    const ctx = audioContextRef.current;
+    const now = ctx.currentTime;
+
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.value = settings.myFrequency;
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 1;
+
+    // Quick attack to full volume
+    const attackTime = 0.01;
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(settings.myVolume, now + attackTime);
+
+    oscillator.start(now);
+
+    myOscillatorRef.current = oscillator;
+    myGainNodeRef.current = gainNode;
+  };
+
+  // Stop continuous tone for user's morse code
+  const stopMyMorseTone = () => {
+    if (!myOscillatorRef.current || !myGainNodeRef.current) return;
+
+    const ctx = audioContextRef.current;
+    const now = ctx.currentTime;
+    const releaseTime = 0.05;
+
+    // Quick fade out
+    myGainNodeRef.current.gain.cancelScheduledValues(now);
+    myGainNodeRef.current.gain.setValueAtTime(myGainNodeRef.current.gain.value, now);
+    myGainNodeRef.current.gain.linearRampToValueAtTime(0, now + releaseTime);
+
+    myOscillatorRef.current.stop(now + releaseTime);
+    myOscillatorRef.current = null;
+    myGainNodeRef.current = null;
+  };
+
+  // Play sound for user's own morse code (for instant dot/dash and for callback from MorseKey)
+  const playMyMorseSound = (isDashOrStart) => {
+    // If called with boolean true/false, it's a start/stop command from MorseKey
+    if (isDashOrStart === true) {
+      startMyMorseTone();
+      return;
+    } else if (isDashOrStart === false) {
+      stopMyMorseTone();
+      return;
+    }
+
+    // Otherwise it's an instant dot/dash beep
+    const isDash = isDashOrStart;
     if (!audioContextRef.current || settings.myVolume === 0) return;
 
     const ctx = audioContextRef.current;
@@ -216,10 +281,15 @@ export default function App() {
   const handleKeyPress = (type) => {
     if (type === 'start') {
       keyPressStart.current = Date.now();
+      // Start tone immediately when spacebar is pressed (like a real CW key)
+      startMyMorseTone();
     } else if (type === 'end' && keyPressStart.current) {
       const duration = Date.now() - keyPressStart.current;
       const isDash = duration > timing.dashThreshold;
       const signal = isDash ? 'dash' : 'dot';
+
+      // Stop tone when spacebar is released (like a real CW key)
+      stopMyMorseTone();
 
       handleMorseSignal(signal);
       keyPressStart.current = null;
@@ -510,7 +580,7 @@ export default function App() {
   // Update ref so keyboard handlers always call the current version
   handleMorseSignalRef.current = handleMorseSignal;
 
-  // Handler for two-circle buttons that prevents double-firing
+  // Handler for two-circle button press (start tone)
   const handleCircleButtonPress = (signal, e) => {
     // If this is a touch event, mark that we're using touch and prevent mouse events
     if (e.type === 'touchstart') {
@@ -524,6 +594,25 @@ export default function App() {
       }
     }
 
+    // Start tone immediately when button is pressed (like a real CW key)
+    startMyMorseTone();
+  };
+
+  // Handler for two-circle button release (stop tone and send signal)
+  const handleCircleButtonRelease = (signal, e) => {
+    // Prevent double-firing with touch events
+    if (e.type === 'touchend') {
+      e.preventDefault();
+    } else if (e.type === 'mouseup' || e.type === 'mouseleave') {
+      if (isTouchDevice.current) {
+        return; // Ignore mouse event after touch
+      }
+    }
+
+    // Stop tone when button is released (like a real CW key)
+    stopMyMorseTone();
+
+    // Send the signal (dot or dash)
     handleMorseSignal(signal);
   };
 
@@ -698,8 +787,17 @@ export default function App() {
                   if (e.button !== 0) return; // Only left click
                   handleCircleButtonPress('dot', e);
                 }}
+                onMouseUp={(e) => {
+                  handleCircleButtonRelease('dot', e);
+                }}
+                onMouseLeave={(e) => {
+                  handleCircleButtonRelease('dot', e);
+                }}
                 onTouchStart={(e) => {
                   handleCircleButtonPress('dot', e);
+                }}
+                onTouchEnd={(e) => {
+                  handleCircleButtonRelease('dot', e);
                 }}
                 disabled={false}
               >
@@ -713,8 +811,17 @@ export default function App() {
                   if (e.button !== 0) return; // Only left click
                   handleCircleButtonPress('dash', e);
                 }}
+                onMouseUp={(e) => {
+                  handleCircleButtonRelease('dash', e);
+                }}
+                onMouseLeave={(e) => {
+                  handleCircleButtonRelease('dash', e);
+                }}
                 onTouchStart={(e) => {
                   handleCircleButtonPress('dash', e);
+                }}
+                onTouchEnd={(e) => {
+                  handleCircleButtonRelease('dash', e);
                 }}
                 disabled={false}
               >
