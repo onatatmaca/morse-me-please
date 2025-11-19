@@ -5,7 +5,7 @@ export const TUTORIALS = [
     title: "SOS - Emergency Signal",
     description: "Type the classic SOS distress signal",
     targetText: "SOS",
-    targetMorse: "··· | −−− | ···",
+    targetMorse: "··· −−− ···",
     hint: "S = ··· (three dots), O = −−− (three dashes)"
   },
   {
@@ -13,7 +13,7 @@ export const TUTORIALS = [
     title: "Hello World",
     description: "Type HELLO to practice common letters",
     targetText: "HELLO",
-    targetMorse: "···· | · | ·−·· | ·−·· | −−−",
+    targetMorse: "···· · ·−·· ·−·· −−−",
     hint: "H = ····, E = ·, L = ·−··, O = −−−"
   },
   {
@@ -21,7 +21,7 @@ export const TUTORIALS = [
     title: "Your Name",
     description: "Practice typing a simple word: MORSE",
     targetText: "MORSE",
-    targetMorse: "−− | −−− | ·−· | ··· | ·",
+    targetMorse: "−− −−− ·−· ··· ·",
     hint: "M = −−, O = −−−, R = ·−·, S = ···, E = ·"
   },
   {
@@ -29,7 +29,7 @@ export const TUTORIALS = [
     title: "Numbers 1-2-3",
     description: "Type numbers in Morse code",
     targetText: "123",
-    targetMorse: "·−−−− | ··−−− | ···−−",
+    targetMorse: "·−−−− ··−−− ···−−",
     hint: "Numbers start with dots then add dashes: 1 = ·−−−−, 2 = ··−−−, 3 = ···−−"
   },
   {
@@ -37,7 +37,7 @@ export const TUTORIALS = [
     title: "Help Me",
     description: "Type a two-word message",
     targetText: "HELP ME",
-    targetMorse: "···· | · | ·−·· | ·−−· | −− | ·",
+    targetMorse: "···· · ·−·· ·−−· | −− ·",
     hint: "Remember: pause longer between words to create | separator"
   },
   {
@@ -45,7 +45,7 @@ export const TUTORIALS = [
     title: "Good Morning",
     description: "Practice a friendly greeting",
     targetText: "GOOD MORNING",
-    targetMorse: "−−· | −−− | −−− | −·· | −− | −−− | ·−· | −· | ·· | −· | −−·",
+    targetMorse: "−−· −−− −−− −·· | −− −−− ·−· −· ·· −· −−·",
     hint: "Take your time - accuracy is more important than speed!"
   },
   {
@@ -53,7 +53,7 @@ export const TUTORIALS = [
     title: "Coffee Break",
     description: "Type a longer word: COFFEE",
     targetText: "COFFEE",
-    targetMorse: "−·−· | −−− | ··−· | ··−· | · | ·",
+    targetMorse: "−·−· −−− ··−· ··−· · ·",
     hint: "C = −·−·, O = −−−, F = ··−·, F = ··−·, E = ·, E = ·"
   },
   {
@@ -61,7 +61,7 @@ export const TUTORIALS = [
     title: "Yes or No",
     description: "Quick responses in Morse",
     targetText: "YES NO",
-    targetMorse: "−·−− | · | ··· | −· | −−− ",
+    targetMorse: "−·−− · ··· | −· −−−",
     hint: "Y = −·−−, E = ·, S = ···, N = −·, O = −−−"
   }
 ];
