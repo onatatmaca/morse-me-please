@@ -46,7 +46,7 @@ iframe[src*="buymeacoffee"] {
   left: 20px;
   width: 400px;
   max-width: 90vw;
-  max-height: 500px;
+  max-height: 650px; /* Increased from 500px to show more alphabet */
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 16px;
@@ -226,7 +226,7 @@ iframe[src*="buymeacoffee"] {
     bottom: 50px;
     left: 8px;
     width: calc(100vw - 16px);
-    max-height: 400px;
+    max-height: 550px; /* Increased from 400px for mobile */
   }
 
   .helper-header h3 {
@@ -294,7 +294,7 @@ iframe[src*="buymeacoffee"] {
     bottom: 40px;
     left: 6px;
     width: calc(100vw - 12px);
-    max-height: 350px;
+    max-height: 480px; /* Increased from 350px for small mobile */
   }
 
   .morse-grid {

@@ -3,7 +3,7 @@ import MorseKey from './MorseKey';
 import MessageTranscript from './MessageTranscript';
 import ControlPanel from './ControlPanel';
 import SettingsPanel from './SettingsPanel';
-import { translateMorse } from './MorseHelper';
+import MorseHelper, { translateMorse } from './MorseHelper';
 import './App.css'; // Reuse all the same styles from chat mode
 
 const DEFAULT_SETTINGS = {
@@ -531,6 +531,7 @@ export default function SandboxMode({ username, onExit }) {
           onClose={() => setShowSettings(false)}
         />
       </div>
+      <MorseHelper />
     </>
   );
 }
