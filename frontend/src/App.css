@@ -369,8 +369,15 @@ html, body, #root {
   margin-top: 10px;
 }
 
-.find-partner-btn {
+.waiting-actions {
+  display: flex;
+  gap: 16px;
   margin-top: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.find-partner-btn {
   padding: 14px 32px;
   background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
@@ -387,6 +394,25 @@ html, body, #root {
   background: linear-gradient(135deg, #2980b9, #21618c);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.change-mode-btn {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(127, 140, 141, 0.3);
+}
+
+.change-mode-btn:hover {
+  background: linear-gradient(135deg, #95a5a6, #b4bcc2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(127, 140, 141, 0.4);
 }
 
 .timing-guide {

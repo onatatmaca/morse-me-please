@@ -296,7 +296,15 @@ export default function PracticeMode({ username, onExit }) {
     const userMorse = myLiveMessage.trim();
     const targetMorse = tutorial.targetMorse;
 
-    const normalizeSpaces = (str) => str.replace(/\s+/g, ' ').replace(/\s+\|\s+/g, ' | ').trim();
+    // More lenient comparison - normalize spaces and remove trailing word separators
+    const normalizeSpaces = (str) => {
+      return str
+        .replace(/\s+/g, ' ')           // Normalize multiple spaces
+        .replace(/\s+\|\s+/g, ' | ')    // Normalize word separators
+        .replace(/\s*\|\s*$/g, '')      // Remove trailing word separator
+        .trim();
+    };
+
     const isMatch = normalizeSpaces(userMorse) === normalizeSpaces(targetMorse);
 
     setIsCorrect(isMatch);
