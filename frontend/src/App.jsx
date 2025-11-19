@@ -703,7 +703,32 @@ export default function App() {
   };
 
   const handleExitPractice = () => {
-    setMode(''); // Back to mode selection
+    // CRITICAL: Properly disconnect and clean up when exiting chat mode
+    if (socket.connected) {
+      socket.disconnect();
+    }
+
+    // Clear all chat state
+    setPartnerUsername('');
+    setStatus('');
+    setMessages([]);
+    setMyLiveMessage('');
+    setPartnerLiveMessage('');
+    setPlaybackQueue([]);
+    setIsPlayingBack(false);
+    setTotalWPM(0);
+    setCurrentMessageStartTime(null);
+    setPartnerMessageStartTime(null);
+    setAutoSendProgress(0);
+
+    // Clear all timeouts
+    if (letterSpaceTimeout.current) clearTimeout(letterSpaceTimeout.current);
+    if (wordSpaceTimeout.current) clearTimeout(wordSpaceTimeout.current);
+    if (autoSendTimeout.current) clearTimeout(autoSendTimeout.current);
+    if (progressInterval.current) clearInterval(progressInterval.current);
+
+    // Back to mode selection
+    setMode('');
   };
 
   // Show username form if no username
@@ -888,11 +913,16 @@ export default function App() {
         <div className="main-content">
           <h2>⏳ {status}</h2>
           <p className="waiting-hint">Open another tab or share with a friend to connect!</p>
-          {status === 'Partner disconnected' && (
-            <button className="find-partner-btn" onClick={handleFindNew}>
-              🔄 Find New Partner
+          <div className="waiting-actions">
+            {status === 'Partner disconnected' && (
+              <button className="find-partner-btn" onClick={handleFindNew}>
+                🔄 Find New Partner
+              </button>
+            )}
+            <button className="change-mode-btn" onClick={handleExitPractice}>
+              ← Change Mode
             </button>
-          )}
+          </div>
         </div>
       )}
 
